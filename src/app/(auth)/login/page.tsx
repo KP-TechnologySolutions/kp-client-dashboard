@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Layers, ArrowRight, Shield, Users } from "lucide-react";
 
 const MOCK_ACCOUNTS = [
-  { id: "admin-hal", label: "Hal", role: "Admin", email: "hal@kptechnology.com" },
-  { id: "admin-shawn", label: "Shawn", role: "Admin", email: "shawn@kptechnology.com" },
+  { id: "admin-kp", label: "KP Admin", role: "Admin", email: "admin@kptechnology.com" },
   { id: "client-mike", label: "Mike Chen", role: "56 Kitchen", email: "mike@56kitchen.com" },
   { id: "client-sarah", label: "Sarah Williams", role: "Elle", email: "sarah@ellesalon.com" },
   { id: "client-james", label: "James Park", role: "56 Social", email: "james@56social.com" },
@@ -115,32 +114,27 @@ export default function LoginPage() {
               </span>
             </div>
 
-            {/* Admin accounts */}
+            {/* Admin account */}
             <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-widest mb-2">
               Admin
             </p>
-            <div className="grid grid-cols-2 gap-1.5 mb-3">
-              {MOCK_ACCOUNTS.filter((a) => a.id.startsWith("admin-")).map((account) => (
-                <button
-                  key={account.id}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-200/80 bg-white/60 hover:bg-white hover:shadow-sm text-left transition-all cursor-pointer"
-                  onClick={() => loginAs(account.id)}
-                  disabled={loading}
-                >
-                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                    {account.label[0]}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-foreground truncate">
-                      {account.label}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {account.role}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <button
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg border border-amber-200/80 bg-white/60 hover:bg-white hover:shadow-sm text-left transition-all cursor-pointer mb-3"
+              onClick={() => loginAs("admin-kp")}
+              disabled={loading}
+            >
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                KP
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-foreground">
+                  KP Admin
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Hal &amp; Shawn
+                </p>
+              </div>
+            </button>
 
             {/* Client accounts */}
             <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-widest mb-2">

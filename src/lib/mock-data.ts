@@ -62,10 +62,20 @@ export const organizations: Organization[] = [
 // ── Profiles ───────────────────────────────────────────────────────
 export const profiles: Profile[] = [
   {
+    id: "admin-kp",
+    role: "admin",
+    organization_id: null,
+    full_name: "KP Admin",
+    email: "admin@kptechnology.com",
+    avatar_url: null,
+    created_at: "2025-01-01T10:00:00Z",
+  },
+  // Team members (for assignment display, not separate logins)
+  {
     id: "admin-hal",
     role: "admin",
     organization_id: null,
-    full_name: "Hal Pickus",
+    full_name: "Hal",
     email: "hal@kptechnology.com",
     avatar_url: null,
     created_at: "2025-01-01T10:00:00Z",
