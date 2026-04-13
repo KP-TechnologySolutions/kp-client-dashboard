@@ -1,36 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KP Client Dashboard
 
-## Getting Started
+A modern dark-themed client request dashboard for **KP Technology Solutions**. Clients (56 Kitchen, Elle, 56 Social, etc.) submit website change requests and track their status. Hal and Shawn manage everything from the admin panel.
 
-First, run the development server:
+## Quick Start
 
 ```bash
+git clone https://github.com/KP-TechnologySolutions/kp-client-dashboard.git
+cd kp-client-dashboard
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) and use the dev quick login buttons:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **KP Admin** — Admin dashboard (Hal & Shawn)
+- **Client accounts** — Portal view for each business (56 Kitchen, Elle, 56 Social, Lowcountry Septic)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech Stack
 
-## Learn More
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Components | shadcn/ui |
+| Icons | Lucide React |
+| Animations | Framer Motion |
+| Fonts | Inter (body) + Poppins (headings) |
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+  app/
+    (auth)/login/        → Login page with dev quick-login
+    admin/               → Admin dashboard
+      requests/          → All requests table + detail pages
+      clients/           → Client org list + detail pages
+      settings/          → Settings page
+    portal/              → Client portal
+      requests/          → Client's request list + detail + new form
+      account/           → Client account settings
+  components/
+    admin/               → AdminSidebar, AdminRequestActions
+    portal/              → PortalNav, PortalCommentForm
+    shared/              → StatusBadge, PriorityBadge, CategoryLabel, motion helpers
+    ui/                  → shadcn/ui components (button, card, input, etc.)
+  lib/
+    auth.ts              → Mock auth (reads cookie)
+    constants.ts         → Status/category/priority configs, admin team
+    mock-data.ts         → Organizations, profiles, requests, comments
+    types.ts             → TypeScript types for all data models
+    utils.ts             → cn() helper
+  middleware.ts          → Route protection (admin vs client vs public)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Features
 
-## Deploy on Vercel
+### Admin Dashboard (`/admin`)
+- Stat cards with gradient accents and glow-on-hover
+- "Needs Attention" panel (unassigned + urgent requests)
+- Active requests list
+- Full requests table with search and filters (status, client, assignee, priority)
+- Request detail with status actions, assignment, comments, internal notes, activity timeline
+- Clients page with org cards and drill-down
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Client Portal (`/portal`)
+- Dashboard with stat cards and recent requests
+- Submit new request form (title, description, category, priority, file upload)
+- Request list with active/completed grouping
+- Request detail with status timeline, comment thread
+- Account page
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Security
+- Middleware blocks clients from `/admin` routes
+- Client views only show their own organization's data
+- Internal notes and internal comments are hidden from clients
+
+## Current Status
+
+**Phase 1 (Complete)** — Full UI with mock auth and mock data. Everything works locally.
+
+### Next Phases
+
+**Phase 2 — Supabase Integration**
+- Create Supabase project, run SQL migrations
+- Row Level Security for multi-tenant isolation
+- Swap mock data for Supabase queries
+- Swap mock auth for Supabase Auth
+- File storage for attachments
+
+**Phase 3 — Email Automation**
+- Resend for transactional emails (status changes, new requests)
+- React Email templates
+- Vercel Cron for stale request reminders (daily at 8 AM ET)
+
+**Phase 4 — Deploy**
+- Deploy to Vercel
+- Create real user accounts
+- End-to-end testing
+
+## Data Model
+
+| Table | Purpose |
+|-------|---------|
+| `organizations` | Client businesses (56 Kitchen, Elle, etc.) |
+| `profiles` | Users with roles (admin or client) |
+| `requests` | Website change requests with status workflow |
+| `request_comments` | Comment thread with internal flag |
+| `request_attachments` | File uploads |
+| `activity_log` | Audit trail for all changes |
+
+### Status Workflow
+
+```
+submitted → reviewed → in_progress → complete
+    └──────────────────────────────→ rejected
+```
+
+## Scripts
+
+```bash
+npm run dev      # Start dev server (http://localhost:3000)
+npm run build    # Production build
+npm run start    # Start production server
+npm run lint     # Run ESLint
+```
