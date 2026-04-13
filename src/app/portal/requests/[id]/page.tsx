@@ -1,0 +1,311 @@
+import Link from "next/link";
+import { redirect, notFound } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { StatusBadge } from "@/components/shared/status-badge";
+import { PriorityBadge } from "@/components/shared/priority-badge";
+import { CategoryLabel } from "@/components/shared/category-label";
+import {
+  ArrowLeft,
+  Calendar,
+  User,
+  MessageSquare,
+  Clock,
+  CheckCircle2,
+} from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
+import { getRequestWithDetails, getProfile } from "@/lib/mock-data";
+import { STATUS_CONFIG } from "@/lib/constants";
+import { PortalCommentForm } from "@/components/portal/portal-comment-form";
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export default async function PortalRequestDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const user = await getCurrentUser();
+  if (!user || !user.organization_id) redirect("/login");
+
+  const { id } = await params;
+  const request = getRequestWithDetails(id, "client");
+
+  if (!request || request.organization_id !== user.organization_id) {
+    notFound();
+  }
+
+  // Status timeline steps
+  const statusSteps = [
+    { key: "submitted", label: "Submitted" },
+    { key: "reviewed", label: "Reviewed" },
+    { key: "in_progress", label: "In Progress" },
+    { key: "complete", label: "Complete" },
+  ];
+
+  const currentStepIndex = statusSteps.findIndex(
+    (s) => s.key === request.status
+  );
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      <Link
+        href="/portal/requests"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        My Requests
+      </Link>
+
+      {/* Header */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-mono text-sm text-muted-foreground">
+            KP-{String(request.request_number).padStart(4, "0")}
+          </span>
+          <StatusBadge status={request.status} />
+          <PriorityBadge priority={request.priority} />
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight">{request.title}</h1>
+        <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+          <span className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5" />
+            {formatDate(request.created_at)}
+          </span>
+          {request.assignee && (
+            <span className="flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5" />
+              Assigned to {request.assignee.full_name}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Status Timeline */}
+      {request.status !== "rejected" && (
+        <Card>
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center justify-between">
+              {statusSteps.map((step, i) => {
+                const isComplete = i <= currentStepIndex;
+                const isCurrent = i === currentStepIndex;
+                return (
+                  <div key={step.key} className="flex items-center flex-1">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+                          isComplete
+                            ? "bg-primary border-primary text-primary-foreground"
+                            : "border-muted-foreground/30 text-muted-foreground"
+                        }`}
+                      >
+                        {isComplete ? (
+                          <CheckCircle2 className="w-4 h-4" />
+                        ) : (
+                          i + 1
+                        )}
+                      </div>
+                      <span
+                        className={`text-xs mt-1.5 font-medium ${
+                          isCurrent
+                            ? "text-primary"
+                            : isComplete
+                              ? "text-foreground"
+                              : "text-muted-foreground"
+                        }`}
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                    {i < statusSteps.length - 1 && (
+                      <div
+                        className={`flex-1 h-0.5 mx-2 mt-[-1rem] ${
+                          i < currentStepIndex
+                            ? "bg-primary"
+                            : "bg-muted-foreground/20"
+                        }`}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Description */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Description
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm whitespace-pre-wrap leading-relaxed">
+            {request.description}
+          </p>
+          <div className="mt-3">
+            <CategoryLabel category={request.category} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Details sidebar info inline */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-4 pb-3 text-center">
+            <p className="text-xs text-muted-foreground mb-0.5">Status</p>
+            <StatusBadge status={request.status} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 text-center">
+            <p className="text-xs text-muted-foreground mb-0.5">Priority</p>
+            <PriorityBadge priority={request.priority} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 text-center">
+            <p className="text-xs text-muted-foreground mb-0.5">Due Date</p>
+            <p className="text-sm font-medium">
+              {request.due_date
+                ? new Date(request.due_date).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                : "TBD"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 text-center">
+            <p className="text-xs text-muted-foreground mb-0.5">Assigned</p>
+            <p className="text-sm font-medium">
+              {request.assignee?.full_name ?? "Pending"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Comments */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Comments ({request.comments.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {request.comments.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No comments yet. We&apos;ll update you here as we work on your
+              request.
+            </p>
+          ) : (
+            request.comments.map((comment) => {
+              const author = getProfile(comment.author_id);
+              const isAdmin = author?.role === "admin";
+              return (
+                <div key={comment.id} className="p-3 rounded-lg border bg-card">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        isAdmin
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {author?.full_name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("") ?? "?"}
+                    </div>
+                    <span className="text-sm font-medium">
+                      {author?.full_name ?? "Unknown"}
+                    </span>
+                    {isAdmin && (
+                      <span className="text-xs text-primary font-medium">
+                        KP Team
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {formatDate(comment.created_at)}
+                    </span>
+                  </div>
+                  <p className="text-sm pl-8">{comment.body}</p>
+                </div>
+              );
+            })
+          )}
+
+          <Separator />
+          <PortalCommentForm />
+        </CardContent>
+      </Card>
+
+      {/* Activity */}
+      {request.activity.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {request.activity.map((log) => {
+                const actor = getProfile(log.actor_id);
+                let description = "";
+                switch (log.action) {
+                  case "created":
+                    description = "submitted this request";
+                    break;
+                  case "status_changed":
+                    description = `updated status to ${STATUS_CONFIG[log.new_value as keyof typeof STATUS_CONFIG]?.label ?? log.new_value}`;
+                    break;
+                  case "assigned":
+                    description = `assigned to ${log.new_value}`;
+                    break;
+                  case "commented":
+                    description = "added a comment";
+                    break;
+                  default:
+                    description = log.action;
+                }
+                return (
+                  <div
+                    key={log.id}
+                    className="flex items-start gap-3 text-sm"
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-2 shrink-0" />
+                    <div>
+                      <span className="font-medium">
+                        {actor?.full_name ?? "Unknown"}
+                      </span>{" "}
+                      <span className="text-muted-foreground">
+                        {description}
+                      </span>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {formatDate(log.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
