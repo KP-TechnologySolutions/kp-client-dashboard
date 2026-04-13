@@ -53,42 +53,44 @@
 }
 
 :root {
-  --background: oklch(0.985 0.002 247);
-  --foreground: oklch(0.145 0.015 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0.015 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0.015 260);
-  --primary: oklch(0.45 0.2 260);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.96 0.01 260);
-  --secondary-foreground: oklch(0.25 0.02 260);
-  --muted: oklch(0.96 0.005 260);
-  --muted-foreground: oklch(0.5 0.02 260);
-  --accent: oklch(0.96 0.01 260);
-  --accent-foreground: oklch(0.25 0.02 260);
+  /* Indigo-based palette from design system */
+  --background: oklch(0.98 0.005 270);
+  --foreground: oklch(0.13 0.03 275);
+  --card: oklch(0.995 0.002 270);
+  --card-foreground: oklch(0.13 0.03 275);
+  --popover: oklch(0.995 0.002 270);
+  --popover-foreground: oklch(0.13 0.03 275);
+  --primary: oklch(0.49 0.22 270);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.955 0.015 270);
+  --secondary-foreground: oklch(0.2 0.04 275);
+  --muted: oklch(0.955 0.01 270);
+  --muted-foreground: oklch(0.46 0.03 270);
+  --accent: oklch(0.955 0.015 270);
+  --accent-foreground: oklch(0.2 0.04 275);
   --destructive: oklch(0.577 0.245 27.325);
-  --warning: oklch(0.75 0.15 75);
-  --warning-foreground: oklch(0.35 0.1 60);
-  --success: oklch(0.65 0.17 150);
-  --success-foreground: oklch(1 0 0);
-  --border: oklch(0.91 0.01 260);
-  --input: oklch(0.91 0.01 260);
-  --ring: oklch(0.45 0.2 260);
-  --chart-1: oklch(0.45 0.2 260);
-  --chart-2: oklch(0.6 0.17 150);
-  --chart-3: oklch(0.75 0.15 75);
-  --chart-4: oklch(0.65 0.2 330);
-  --chart-5: oklch(0.55 0.15 30);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.17 0.02 260);
-  --sidebar-foreground: oklch(0.92 0.01 260);
-  --sidebar-primary: oklch(0.55 0.22 260);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.25 0.03 260);
-  --sidebar-accent-foreground: oklch(0.92 0.01 260);
-  --sidebar-border: oklch(0.3 0.03 260);
-  --sidebar-ring: oklch(0.55 0.22 260);
+  --warning: oklch(0.8 0.14 80);
+  --warning-foreground: oklch(0.35 0.08 60);
+  --success: oklch(0.62 0.19 155);
+  --success-foreground: oklch(0.99 0 0);
+  --border: oklch(0.92 0.01 270);
+  --input: oklch(0.92 0.01 270);
+  --ring: oklch(0.49 0.22 270);
+  --chart-1: oklch(0.49 0.22 270);
+  --chart-2: oklch(0.62 0.19 155);
+  --chart-3: oklch(0.8 0.14 80);
+  --chart-4: oklch(0.58 0.22 330);
+  --chart-5: oklch(0.55 0.18 30);
+  --radius: 0.75rem;
+  /* Dark sidebar with indigo tones */
+  --sidebar: oklch(0.15 0.035 275);
+  --sidebar-foreground: oklch(0.93 0.01 270);
+  --sidebar-primary: oklch(0.58 0.22 270);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.22 0.045 275);
+  --sidebar-accent-foreground: oklch(0.94 0.01 270);
+  --sidebar-border: oklch(0.26 0.04 275);
+  --sidebar-ring: oklch(0.58 0.22 270);
 }
 
 @layer base {
@@ -99,6 +101,37 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-sans scroll-smooth;
   }
+}
+
+/* Glassmorphism card utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Gradient mesh background for login / hero areas */
+.gradient-mesh {
+  background:
+    radial-gradient(at 20% 80%, oklch(0.85 0.12 270 / 0.4) 0%, transparent 50%),
+    radial-gradient(at 80% 20%, oklch(0.78 0.14 290 / 0.3) 0%, transparent 50%),
+    radial-gradient(at 50% 50%, oklch(0.88 0.08 250 / 0.2) 0%, transparent 70%),
+    oklch(0.97 0.01 270);
+}
+
+/* Subtle animated gradient for stat card top borders */
+.stat-gradient-indigo {
+  background: linear-gradient(135deg, oklch(0.49 0.22 270), oklch(0.55 0.2 280));
+}
+.stat-gradient-amber {
+  background: linear-gradient(135deg, oklch(0.75 0.16 70), oklch(0.8 0.14 85));
+}
+.stat-gradient-emerald {
+  background: linear-gradient(135deg, oklch(0.62 0.19 155), oklch(0.68 0.17 165));
+}
+.stat-gradient-blue {
+  background: linear-gradient(135deg, oklch(0.55 0.2 255), oklch(0.6 0.18 265));
 }

@@ -51,9 +51,9 @@ export default function NewRequestPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <Link
         href="/portal/requests"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer group"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
         My Requests
       </Link>
 
@@ -66,8 +66,8 @@ export default function NewRequestPage() {
         </p>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="shadow-sm">
+        <CardContent className="pt-7 pb-7 px-7">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="title">
@@ -136,8 +136,10 @@ export default function NewRequestPage() {
             {/* File Upload */}
             <div className="space-y-2">
               <Label>Attachments</Label>
-              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              <div className="border-2 border-dashed rounded-xl p-8 text-center hover:border-primary/40 hover:bg-primary/[0.02] transition-all cursor-pointer">
+                <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mx-auto mb-3">
+                  <Upload className="w-5 h-5 text-primary/60" />
+                </div>
                 <p className="text-sm text-muted-foreground mb-1">
                   Drag and drop files here, or click to browse
                 </p>
@@ -159,15 +161,16 @@ export default function NewRequestPage() {
               )}
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
+                className="cursor-pointer"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading} className="flex-1">
+              <Button type="submit" disabled={loading} className="flex-1 shadow-md shadow-primary/20 cursor-pointer">
                 <Send className="w-4 h-4 mr-2" />
                 {loading ? "Submitting..." : "Submit Request"}
               </Button>

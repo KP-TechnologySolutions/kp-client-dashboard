@@ -88,12 +88,12 @@ export default function AdminRequestsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-3">
+      <div className="flex flex-col md:flex-row gap-3 p-4 rounded-xl bg-card border border-border/60 shadow-sm">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search requests..."
-            className="pl-9"
+            className="pl-9 bg-background/80"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -160,10 +160,10 @@ export default function AdminRequestsPage() {
           description="Try adjusting your filters."
         />
       ) : (
-        <div className="border rounded-lg overflow-hidden">
+        <div className="border border-border/60 rounded-xl overflow-hidden shadow-sm bg-card">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50">
+              <TableRow className="bg-muted/40 hover:bg-muted/40">
                 <TableHead className="w-24">#</TableHead>
                 <TableHead>Request</TableHead>
                 <TableHead className="hidden md:table-cell">Client</TableHead>
@@ -189,11 +189,11 @@ export default function AdminRequestsPage() {
                   ? getProfile(req.assigned_to)
                   : null;
                 return (
-                  <TableRow key={req.id} className="hover:bg-accent/30">
+                  <TableRow key={req.id} className="hover:bg-primary/[0.02] transition-colors cursor-pointer group">
                     <TableCell>
                       <Link
                         href={`/admin/requests/${req.id}`}
-                        className="font-mono text-xs text-muted-foreground hover:text-primary"
+                        className="font-mono text-xs text-muted-foreground group-hover:text-primary transition-colors"
                       >
                         KP-{String(req.request_number).padStart(4, "0")}
                       </Link>
@@ -201,7 +201,7 @@ export default function AdminRequestsPage() {
                     <TableCell>
                       <Link
                         href={`/admin/requests/${req.id}`}
-                        className="font-medium text-sm hover:text-primary transition-colors"
+                        className="font-medium text-sm group-hover:text-primary transition-colors"
                       >
                         {req.title}
                       </Link>

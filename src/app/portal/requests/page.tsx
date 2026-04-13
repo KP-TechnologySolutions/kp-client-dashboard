@@ -106,7 +106,7 @@ function RequestCard({
 
   return (
     <Link href={`/portal/requests/${req.id}`}>
-      <Card className="hover:shadow-sm transition-shadow">
+      <Card className="hover:shadow-md hover:border-primary/20 transition-all shadow-sm cursor-pointer group">
         <CardContent className="py-4">
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
@@ -117,7 +117,7 @@ function RequestCard({
                 <StatusBadge status={req.status} />
                 <PriorityBadge priority={req.priority} />
               </div>
-              <h3 className="text-sm font-medium mb-1">{req.title}</h3>
+              <h3 className="text-sm font-medium mb-1 group-hover:text-primary transition-colors">{req.title}</h3>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <span>{formatDate(req.created_at)}</span>
                 <CategoryLabel category={req.category} />

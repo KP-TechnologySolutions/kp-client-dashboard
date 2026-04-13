@@ -38,36 +38,43 @@ export function PortalNav({ userName, orgName }: PortalNavProps) {
     return pathname.startsWith(href);
   }
 
+  const initials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("");
+
   return (
     <>
-      {/* Desktop top nav */}
-      <header className="hidden md:flex items-center justify-between px-6 py-3 bg-white border-b sticky top-0 z-30">
-        <div className="flex items-center gap-6">
-          <Link href="/portal" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Layers className="w-4.5 h-4.5 text-primary-foreground" />
+      {/* Desktop top nav — glass effect */}
+      <header className="hidden md:flex items-center justify-between px-6 py-3 bg-white/70 backdrop-blur-xl border-b border-border/50 sticky top-0 z-30">
+        <div className="flex items-center gap-8">
+          <Link href="/portal" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/75 flex items-center justify-center shadow-md shadow-primary/15 transition-transform group-hover:scale-105">
+              <Layers className="w-[18px] h-[18px] text-primary-foreground" />
             </div>
             <div>
               <span className="font-bold text-sm block leading-tight">
                 KP Technology
               </span>
-              <span className="text-xs text-muted-foreground">{orgName}</span>
+              <span className="text-[11px] text-muted-foreground font-medium">
+                {orgName}
+              </span>
             </div>
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-0.5">
             {NAV_ITEMS.map((item) => {
               const active = isActive(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                     active
-                      ? "bg-primary/5 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      ? "bg-primary/8 text-primary shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/80"
                   }`}
                 >
-                  <item.icon className="w-4 h-4" />
+                  <item.icon className={`w-4 h-4 ${active ? "text-primary" : ""}`} />
                   {item.label}
                 </Link>
               );
@@ -75,11 +82,19 @@ export function PortalNav({ userName, orgName }: PortalNavProps) {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{userName}</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+              {initials}
+            </div>
+            <span className="text-sm font-medium text-foreground/80">
+              {userName}
+            </span>
+          </div>
+          <div className="w-px h-5 bg-border/60" />
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
             onClick={handleLogout}
           >
             <LogOut className="w-4 h-4" />
@@ -88,19 +103,23 @@ export function PortalNav({ userName, orgName }: PortalNavProps) {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t flex items-center justify-around py-2 px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-xl border-t border-border/50 flex items-center justify-around py-2 px-2 safe-area-inset-bottom">
         {NAV_ITEMS.map((item) => {
           const active = isActive(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                 active ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              <item.icon className="w-5 h-5" />
-              {item.label}
+              <div
+                className={`p-1 rounded-lg transition-colors ${active ? "bg-primary/10" : ""}`}
+              >
+                <item.icon className="w-5 h-5" />
+              </div>
+              <span className="text-[10px]">{item.label}</span>
             </Link>
           );
         })}

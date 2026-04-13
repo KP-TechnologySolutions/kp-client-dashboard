@@ -54,9 +54,9 @@ export default async function AdminRequestDetailPage({
       {/* Back link */}
       <Link
         href="/admin/requests"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer group"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
         All Requests
       </Link>
 
@@ -90,9 +90,9 @@ export default async function AdminRequestDetailPage({
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-5">
         {/* Main content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-5">
           {/* Description */}
           <Card>
             <CardHeader className="pb-3">
@@ -112,7 +112,7 @@ export default async function AdminRequestDetailPage({
 
           {/* Internal Notes */}
           {request.internal_notes && (
-            <Card className="border-amber-200 bg-amber-50/30">
+            <Card className="border-amber-200/70 bg-gradient-to-br from-amber-50/50 to-orange-50/30">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-amber-700 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />

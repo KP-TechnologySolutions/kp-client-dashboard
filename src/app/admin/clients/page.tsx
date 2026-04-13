@@ -35,11 +35,11 @@ export default function AdminClientsPage() {
 
           return (
             <Link key={org.id} href={`/admin/clients/${org.slug}`}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <Card className="hover:shadow-md hover:border-primary/20 transition-all cursor-pointer h-full shadow-sm group">
                 <CardContent className="pt-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center group-hover:from-primary/20 group-hover:to-primary/10 transition-colors">
                         <Building2 className="w-5 h-5 text-primary" />
                       </div>
                       <div>
@@ -49,7 +49,7 @@ export default function AdminClientsPage() {
                         </p>
                       </div>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">

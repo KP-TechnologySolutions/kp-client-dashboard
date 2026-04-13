@@ -59,9 +59,9 @@ export default async function PortalRequestDetailPage({
     <div className="max-w-3xl mx-auto space-y-6">
       <Link
         href="/portal/requests"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer group"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
         My Requests
       </Link>
 
@@ -91,8 +91,9 @@ export default async function PortalRequestDetailPage({
 
       {/* Status Timeline */}
       {request.status !== "rejected" && (
-        <Card>
-          <CardContent className="pt-5 pb-4">
+        <Card className="shadow-sm overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-primary via-primary/60 to-primary/20" />
+          <CardContent className="pt-6 pb-5">
             <div className="flex items-center justify-between">
               {statusSteps.map((step, i) => {
                 const isComplete = i <= currentStepIndex;
@@ -101,25 +102,25 @@ export default async function PortalRequestDetailPage({
                   <div key={step.key} className="flex items-center flex-1">
                     <div className="flex flex-col items-center">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
                           isComplete
-                            ? "bg-primary border-primary text-primary-foreground"
-                            : "border-muted-foreground/30 text-muted-foreground"
-                        }`}
+                            ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md shadow-primary/20"
+                            : "border-2 border-muted-foreground/20 text-muted-foreground"
+                        } ${isCurrent ? "ring-4 ring-primary/10" : ""}`}
                       >
                         {isComplete ? (
-                          <CheckCircle2 className="w-4 h-4" />
+                          <CheckCircle2 className="w-4.5 h-4.5" />
                         ) : (
                           i + 1
                         )}
                       </div>
                       <span
-                        className={`text-xs mt-1.5 font-medium ${
+                        className={`text-xs mt-2 font-semibold ${
                           isCurrent
                             ? "text-primary"
                             : isComplete
                               ? "text-foreground"
-                              : "text-muted-foreground"
+                              : "text-muted-foreground/60"
                         }`}
                       >
                         {step.label}
@@ -127,10 +128,10 @@ export default async function PortalRequestDetailPage({
                     </div>
                     {i < statusSteps.length - 1 && (
                       <div
-                        className={`flex-1 h-0.5 mx-2 mt-[-1rem] ${
+                        className={`flex-1 h-0.5 mx-2 mt-[-1.25rem] rounded-full ${
                           i < currentStepIndex
-                            ? "bg-primary"
-                            : "bg-muted-foreground/20"
+                            ? "bg-gradient-to-r from-primary to-primary/60"
+                            : "bg-muted-foreground/15"
                         }`}
                       />
                     )}
