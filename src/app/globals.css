@@ -53,41 +53,43 @@
 }
 
 :root {
-  --background: #f8f9fc;
-  --foreground: #1e1b4b;
-  --card: #ffffff;
-  --card-foreground: #1e1b4b;
-  --popover: #ffffff;
-  --popover-foreground: #1e1b4b;
+  /* Dark theme — Jobie-inspired */
+  --background: #0f1117;
+  --foreground: #e2e8f0;
+  --card: #1a1d2e;
+  --card-foreground: #e2e8f0;
+  --popover: #1a1d2e;
+  --popover-foreground: #e2e8f0;
   --primary: #6366f1;
   --primary-foreground: #ffffff;
-  --secondary: #eef2ff;
-  --secondary-foreground: #312e81;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #eef2ff;
-  --accent-foreground: #312e81;
+  --secondary: #1e2235;
+  --secondary-foreground: #c7d2fe;
+  --muted: #1e2235;
+  --muted-foreground: #94a3b8;
+  --accent: #1e2235;
+  --accent-foreground: #c7d2fe;
   --destructive: #ef4444;
   --warning: #f59e0b;
-  --warning-foreground: #78350f;
+  --warning-foreground: #fef3c7;
   --success: #10b981;
   --success-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --border: #2a2f42;
+  --input: #2a2f42;
   --ring: #6366f1;
   --chart-1: #6366f1;
   --chart-2: #10b981;
   --chart-3: #f59e0b;
   --chart-4: #ec4899;
   --chart-5: #f97316;
-  --radius: 0.75rem;
-  --sidebar: #1e1b4b;
-  --sidebar-foreground: #e0e7ff;
+  --radius: 0.875rem;
+  /* Sidebar — deeper dark */
+  --sidebar: #131627;
+  --sidebar-foreground: #c7d2fe;
   --sidebar-primary: #818cf8;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #312e81;
+  --sidebar-accent: #1e2235;
   --sidebar-accent-foreground: #e0e7ff;
-  --sidebar-border: #3730a3;
+  --sidebar-border: #252a3e;
   --sidebar-ring: #818cf8;
 }
 
@@ -99,41 +101,66 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans scroll-smooth;
+    @apply font-sans;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-poppins), system-ui, sans-serif;
   }
 }
 
-/* Glassmorphism card */
-.glass-card {
-  background: rgba(255, 255, 255, 0.72);
+/* Glassmorphism */
+.glass {
+  background: rgba(26, 29, 46, 0.6);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(99, 102, 241, 0.1);
 }
 
-/* Gradient mesh for login */
+.glass-light {
+  background: rgba(30, 34, 53, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Gradient mesh login bg */
 .gradient-mesh {
   background:
-    radial-gradient(ellipse at 20% 80%, rgba(99, 102, 241, 0.25) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.2) 0%, transparent 50%),
-    radial-gradient(ellipse at 40% 40%, rgba(129, 140, 248, 0.15) 0%, transparent 60%),
-    radial-gradient(ellipse at 70% 70%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
-    #f8f9fc;
+    radial-gradient(ellipse at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 60%),
+    #0f1117;
 }
 
-/* Stat card gradient bars */
-.stat-gradient-indigo {
-  background: linear-gradient(135deg, #6366f1, #818cf8);
+/* Stat card gradients */
+.gradient-indigo { background: linear-gradient(135deg, #6366f1, #818cf8); }
+.gradient-emerald { background: linear-gradient(135deg, #10b981, #34d399); }
+.gradient-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.gradient-blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+.gradient-pink { background: linear-gradient(135deg, #ec4899, #f472b6); }
+.gradient-purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+
+/* Glow effects */
+.glow-indigo { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3), 0 0 60px rgba(99, 102, 241, 0.1); }
+.glow-emerald { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), 0 0 60px rgba(16, 185, 129, 0.1); }
+.glow-amber { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3), 0 0 60px rgba(245, 158, 11, 0.1); }
+.glow-blue { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 60px rgba(59, 130, 246, 0.1); }
+
+/* Pulse animation for live indicators */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
-.stat-gradient-amber {
-  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
-.stat-gradient-emerald {
-  background: linear-gradient(135deg, #10b981, #34d399);
+
+/* Smooth shimmer for loading states */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
-.stat-gradient-blue {
-  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.05), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
 }

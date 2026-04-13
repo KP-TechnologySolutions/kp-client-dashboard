@@ -7,19 +7,19 @@ const PRIORITY_STYLES: Record<
 > = {
   low: {
     label: "Low",
-    className: "bg-slate-50 text-slate-600 border-slate-200/80",
+    className: "bg-slate-500/15 text-slate-400 border-slate-500/20",
   },
   normal: {
     label: "Normal",
-    className: "bg-sky-50 text-sky-700 border-sky-200/80",
+    className: "bg-sky-500/15 text-sky-400 border-sky-500/20",
   },
   high: {
     label: "High",
-    className: "bg-orange-50 text-orange-700 border-orange-200/80",
+    className: "bg-orange-500/15 text-orange-400 border-orange-500/20",
   },
   urgent: {
     label: "Urgent",
-    className: "bg-red-50 text-red-700 border-red-200/80",
+    className: "bg-red-500/15 text-red-400 border-red-500/20",
   },
 };
 
@@ -31,7 +31,7 @@ export function PriorityBadge({ priority }: { priority: RequestPriority }) {
       className={`text-[11px] font-semibold border px-2 py-0.5 ${style.className}`}
     >
       {priority === "urgent" && (
-        <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1 animate-pulse" />
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 mr-1 animate-pulse" />
       )}
       {style.label}
     </Badge>

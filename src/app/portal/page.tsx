@@ -1,9 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { PriorityBadge } from "@/components/shared/priority-badge";
+import {
+  FadeIn,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/shared/motion";
 import {
   PlusCircle,
   ClipboardList,
@@ -13,8 +19,8 @@ import {
   ArrowRight,
   TrendingUp,
 } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth";
 import { getPortalStats, getRequestsForOrg, getProfile } from "@/lib/mock-data";
+import { useEffect, useState } from "react";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -23,14 +29,29 @@ function formatDate(dateStr: string) {
   });
 }
 
-export default async function PortalDashboard() {
-  const user = await getCurrentUser();
-  if (!user || !user.organization_id) redirect("/login");
+function getCookie(name: string): string | undefined {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? match[2] : undefined;
+}
+
+export default function PortalDashboard() {
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserId(getCookie("mock_user_id") ?? null);
+  }, []);
+
+  if (!userId) return null;
+
+  // Look up user info from mock data
+  const { profiles } = require("@/lib/mock-data");
+  const user = profiles.find((p: { id: string }) => p.id === userId);
+  if (!user || !user.organization_id) return null;
 
   const stats = getPortalStats(user.organization_id);
   const recentRequests = getRequestsForOrg(user.organization_id)
     .sort(
-      (a, b) =>
+      (a: { updated_at: string }, b: { updated_at: string }) =>
         new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
     )
     .slice(0, 5);
@@ -38,174 +59,178 @@ export default async function PortalDashboard() {
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Welcome back, {user.full_name.split(" ")[0]}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Here&apos;s an overview of your website requests
-          </p>
+      <FadeIn>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">
+              Welcome back, {user.full_name.split(" ")[0]}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Here&apos;s an overview of your website requests
+            </p>
+          </div>
+          <Link
+            href="/portal/requests/new"
+            className={buttonVariants({ size: "lg" }) + " shadow-xl shadow-primary/30"}
+          >
+            <PlusCircle className="w-5 h-5 mr-2" />
+            New Request
+          </Link>
         </div>
-        <Link
-          href="/portal/requests/new"
-          className={buttonVariants() + " shadow-md shadow-primary/20 cursor-pointer"}
-        >
-          <PlusCircle className="w-4 h-4 mr-2" />
-          New Request
-        </Link>
-      </div>
+      </FadeIn>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          title="Submitted"
-          value={stats.submitted}
-          icon={Send}
-          gradient="stat-gradient-blue"
-          iconColor="text-blue-600"
-          iconBg="bg-blue-50"
-        />
-        <StatCard
-          title="In Progress"
-          value={stats.inProgress}
-          icon={Loader2}
-          gradient="stat-gradient-amber"
-          iconColor="text-amber-600"
-          iconBg="bg-amber-50"
-        />
-        <StatCard
-          title="Completed"
-          value={stats.complete}
-          icon={CheckCircle2}
-          gradient="stat-gradient-emerald"
-          iconColor="text-emerald-600"
-          iconBg="bg-emerald-50"
-        />
-        <StatCard
-          title="Total"
-          value={stats.total}
-          icon={TrendingUp}
-          gradient="stat-gradient-indigo"
-          iconColor="text-primary"
-          iconBg="bg-primary/8"
-        />
-      </div>
+      <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StaggerItem>
+          <GradientStatCard
+            title="Submitted"
+            value={stats.submitted}
+            icon={Send}
+            gradient="gradient-blue"
+            glow="glow-blue"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <GradientStatCard
+            title="In Progress"
+            value={stats.inProgress}
+            icon={Loader2}
+            gradient="gradient-amber"
+            glow="glow-amber"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <GradientStatCard
+            title="Completed"
+            value={stats.complete}
+            icon={CheckCircle2}
+            gradient="gradient-emerald"
+            glow="glow-emerald"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <GradientStatCard
+            title="Total"
+            value={stats.total}
+            icon={TrendingUp}
+            gradient="gradient-indigo"
+            glow="glow-indigo"
+          />
+        </StaggerItem>
+      </StaggerContainer>
 
       {/* Recent Requests */}
-      <Card className="shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center">
-              <ClipboardList className="w-4 h-4 text-primary" />
-            </div>
-            Recent Requests
-          </CardTitle>
-          <Link
-            href="/portal/requests"
-            className={buttonVariants({ variant: "ghost", size: "sm" }) + " text-xs cursor-pointer"}
-          >
-            View All
-            <ArrowRight className="w-3.5 h-3.5 ml-1" />
-          </Link>
-        </CardHeader>
-        <CardContent>
-          {recentRequests.length === 0 ? (
-            <div className="text-center py-10">
-              <div className="w-12 h-12 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto mb-3">
-                <ClipboardList className="w-6 h-6 text-primary/60" />
+      <FadeIn delay={0.4}>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl gradient-indigo flex items-center justify-center">
+                <ClipboardList className="w-4 h-4 text-white" />
               </div>
-              <p className="text-sm font-medium mb-1">No requests yet</p>
-              <p className="text-xs text-muted-foreground mb-4">
-                Submit your first request and we&apos;ll get working on it
-              </p>
-              <Link
-                href="/portal/requests/new"
-                className={buttonVariants({ size: "sm" }) + " cursor-pointer"}
-              >
-                Submit Your First Request
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {recentRequests.map((req) => {
-                const assignee = req.assigned_to
-                  ? getProfile(req.assigned_to)
-                  : null;
-                return (
-                  <Link
-                    key={req.id}
-                    href={`/portal/requests/${req.id}`}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent/60 transition-all cursor-pointer group"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-muted-foreground">
-                          KP-{String(req.request_number).padStart(4, "0")}
-                        </span>
-                        <span className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-                          {req.title}
-                        </span>
+              <span className="text-white">Recent Requests</span>
+            </CardTitle>
+            <Link
+              href="/portal/requests"
+              className={buttonVariants({ variant: "ghost", size: "sm" }) + " text-xs"}
+            >
+              View All
+              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {recentRequests.length === 0 ? (
+              <div className="text-center py-10">
+                <div className="w-14 h-14 rounded-2xl gradient-indigo flex items-center justify-center mx-auto mb-3 shadow-lg shadow-primary/20">
+                  <ClipboardList className="w-7 h-7 text-white" />
+                </div>
+                <p className="text-sm font-medium text-white mb-1">No requests yet</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Submit your first request and we&apos;ll get working on it
+                </p>
+                <Link
+                  href="/portal/requests/new"
+                  className={buttonVariants({ size: "sm" })}
+                >
+                  Submit Your First Request
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {recentRequests.map((req: any) => {
+                  const assignee = req.assigned_to
+                    ? getProfile(req.assigned_to)
+                    : null;
+                  return (
+                    <Link
+                      key={req.id}
+                      href={`/portal/requests/${req.id}`}
+                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-all duration-200 cursor-pointer group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-primary/60">
+                            KP-{String(req.request_number).padStart(4, "0")}
+                          </span>
+                          <span className="text-sm font-medium text-white/80 truncate group-hover:text-white transition-colors">
+                            {req.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(req.created_at)}
+                          </span>
+                          {assignee && (
+                            <>
+                              <span className="text-white/10">·</span>
+                              <span className="text-xs text-muted-foreground">
+                                Assigned to {assignee.full_name}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(req.created_at)}
-                        </span>
-                        {assignee && (
-                          <>
-                            <span className="text-muted-foreground/40">·</span>
-                            <span className="text-xs text-muted-foreground">
-                              Assigned to {assignee.full_name}
-                            </span>
-                          </>
-                        )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <PriorityBadge priority={req.priority} />
+                        <StatusBadge status={req.status} />
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <PriorityBadge priority={req.priority} />
-                      <StatusBadge status={req.status} />
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </FadeIn>
     </div>
   );
 }
 
-function StatCard({
+function GradientStatCard({
   title,
   value,
   icon: Icon,
   gradient,
-  iconColor,
-  iconBg,
+  glow,
 }: {
   title: string;
   value: number;
   icon: React.ElementType;
   gradient: string;
-  iconColor: string;
-  iconBg: string;
+  glow: string;
 }) {
   return (
-    <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      <div className={`h-1 ${gradient}`} />
-      <CardContent className="pt-5 pb-4">
+    <Card className="relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${glow} rounded-2xl`} />
+      <CardContent className="pt-5 pb-5 relative z-10">
         <div className="flex items-start justify-between mb-4">
-          <span className="text-[13px] text-muted-foreground font-medium">
+          <p className="text-[13px] text-muted-foreground font-medium">
             {title}
-          </span>
-          <div
-            className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center`}
-          >
-            <Icon className={`w-5 h-5 ${iconColor}`} />
+          </p>
+          <div className={`w-11 h-11 rounded-xl ${gradient} flex items-center justify-center shadow-lg`}>
+            <Icon className="w-5 h-5 text-white" />
           </div>
         </div>
-        <span className="text-3xl font-bold tracking-tight">{value}</span>
+        <p className="text-4xl font-bold text-white tracking-tight">{value}</p>
       </CardContent>
     </Card>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,29 +36,29 @@ const STATUS_ACTIONS: {
     status: "reviewed",
     label: "Reviewed",
     icon: Eye,
-    activeClass: "bg-violet-500 text-white shadow-lg shadow-violet-500/25 ring-2 ring-violet-500/20",
-    inactiveClass: "bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 border border-violet-200/60",
+    activeClass: "bg-violet-500 text-white shadow-lg shadow-violet-500/30",
+    inactiveClass: "bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border border-violet-500/20",
   },
   {
     status: "in_progress",
     label: "Start Work",
     icon: Play,
-    activeClass: "bg-amber-500 text-white shadow-lg shadow-amber-500/25 ring-2 ring-amber-500/20",
-    inactiveClass: "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border border-amber-200/60",
+    activeClass: "bg-amber-500 text-white shadow-lg shadow-amber-500/30",
+    inactiveClass: "bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20",
   },
   {
     status: "complete",
     label: "Complete",
     icon: CheckCircle2,
-    activeClass: "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-500/20",
-    inactiveClass: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border border-emerald-200/60",
+    activeClass: "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30",
+    inactiveClass: "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20",
   },
   {
     status: "rejected",
     label: "Reject",
     icon: XCircle,
-    activeClass: "bg-red-500 text-white shadow-lg shadow-red-500/25 ring-2 ring-red-500/20",
-    inactiveClass: "bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-200/60",
+    activeClass: "bg-red-500 text-white shadow-lg shadow-red-500/30",
+    inactiveClass: "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20",
   },
 ];
 
@@ -97,7 +98,7 @@ export function AdminRequestActions({
     <div className="space-y-4">
       {/* Status Control */}
       <Card className="overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-primary via-primary/60 to-primary/20" />
+        <div className="h-1 gradient-indigo" />
         <CardContent className="pt-5 space-y-4">
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">
@@ -107,16 +108,18 @@ export function AdminRequestActions({
               {STATUS_ACTIONS.map((action) => {
                 const isActive = currentStatus === action.status;
                 return (
-                  <button
+                  <motion.button
                     key={action.status}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
                     onClick={() => handleStatusChange(action.status)}
-                    className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
                       isActive ? action.activeClass : action.inactiveClass
                     }`}
                   >
                     <action.icon className="w-3.5 h-3.5" />
                     {action.label}
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
@@ -128,7 +131,7 @@ export function AdminRequestActions({
               Assign To
             </p>
             <Select value={assignee} onValueChange={(v) => v && handleAssign(v)}>
-              <SelectTrigger className="w-full h-10 rounded-xl bg-muted/50 border-border/60">
+              <SelectTrigger className="w-full h-10 rounded-xl bg-white/5 border-white/10">
                 <div className="flex items-center gap-2">
                   <UserCircle className="w-4 h-4 text-muted-foreground" />
                   <SelectValue />
@@ -155,18 +158,18 @@ export function AdminRequestActions({
           </p>
           <Textarea
             placeholder="Write a comment..."
-            className="min-h-24 text-sm rounded-xl bg-muted/30 border-border/60 focus:bg-white resize-none"
+            className="min-h-24 resize-none"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />
           <Button
-            className="w-full h-10 rounded-xl font-semibold shadow-md shadow-primary/15 cursor-pointer"
+            className="w-full shadow-xl shadow-primary/25"
             disabled={!comment.trim()}
             onClick={handleAddComment}
           >
             <Send className="w-4 h-4 mr-2" />
             Send Comment
-            <ArrowRight className="w-3.5 h-3.5 ml-auto opacity-50" />
+            <ArrowRight className="w-3.5 h-3.5 ml-auto opacity-40" />
           </Button>
         </CardContent>
       </Card>
