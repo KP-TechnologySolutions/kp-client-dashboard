@@ -22,8 +22,10 @@ import {
   UserCircle,
   ArrowRight,
 } from "lucide-react";
-import { ADMIN_TEAM, STATUS_CONFIG } from "@/lib/constants";
-import type { RequestWithDetails, RequestStatus } from "@/lib/types";
+import { ADMIN_TEAM } from "@/lib/constants";
+import { updateRequestStatus, assignRequest, addComment, updateRequestEta } from "@/lib/actions";
+import type { RequestStatus } from "@/lib/types";
+import { Input } from "@/components/ui/input";
 
 const STATUS_ACTIONS: {
   status: RequestStatus;
@@ -65,38 +67,59 @@ const STATUS_ACTIONS: {
 export function AdminRequestActions({
   request,
 }: {
-  request: RequestWithDetails;
+  request: { id: string; status: string; assigned_to: string | null; request_number: number; due_date: string | null };
 }) {
-  const [currentStatus, setCurrentStatus] = useState<RequestStatus>(request.status);
+  const [currentStatus, setCurrentStatus] = useState<RequestStatus>(request.status as RequestStatus);
   const [assignee, setAssignee] = useState(request.assigned_to ?? "unassigned");
+  const [eta, setEta] = useState(request.due_date ?? "");
   const [comment, setComment] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  function handleStatusChange(newStatus: RequestStatus) {
+  async function handleStatusChange(newStatus: RequestStatus) {
     setCurrentStatus(newStatus);
-    toast.success(
-      `Status updated to ${STATUS_CONFIG[newStatus].label}`,
-      { description: `KP-${String(request.request_number).padStart(4, "0")}` }
-    );
+    try {
+      await updateRequestStatus(request.id, newStatus);
+      toast.success(`Status updated to ${newStatus.replace("_", " ")}`);
+    } catch {
+      toast.error("Failed to update status");
+    }
   }
 
-  function handleAssign(value: string) {
+  async function handleAssign(value: string) {
     setAssignee(value);
-    const name =
-      value === "unassigned"
-        ? "nobody"
-        : ADMIN_TEAM.find((m) => m.id === value)?.name ?? value;
-    toast.success(`Assigned to ${name}`);
+    try {
+      await assignRequest(request.id, value);
+      toast.success(`Assigned to ${value === "unassigned" ? "nobody" : value}`);
+    } catch {
+      toast.error("Failed to assign");
+    }
   }
 
-  function handleAddComment() {
+  async function handleEtaChange(date: string) {
+    setEta(date);
+    try {
+      await updateRequestEta(request.id, date || null);
+      toast.success(date ? `ETA set to ${new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : "ETA cleared");
+    } catch {
+      toast.error("Failed to update ETA");
+    }
+  }
+
+  async function handleAddComment() {
     if (!comment.trim()) return;
-    toast.success("Comment sent");
-    setComment("");
+    setSaving(true);
+    try {
+      await addComment(request.id, comment, false);
+      toast.success("Comment sent");
+      setComment("");
+    } catch {
+      toast.error("Failed to add comment");
+    }
+    setSaving(false);
   }
 
   return (
     <div className="space-y-4">
-      {/* Status Control */}
       <Card className="overflow-hidden">
         <div className="h-1 gradient-indigo" />
         <CardContent className="pt-5 space-y-4">
@@ -125,7 +148,6 @@ export function AdminRequestActions({
             </div>
           </div>
 
-          {/* Assign */}
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">
               Assign To
@@ -140,17 +162,36 @@ export function AdminRequestActions({
               <SelectContent>
                 <SelectItem value="unassigned">Unassigned</SelectItem>
                 {ADMIN_TEAM.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
+                  <SelectItem key={member.id} value={member.name}>
                     {member.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* ETA */}
+          <div>
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">
+              ETA for Client
+            </p>
+            <Input
+              type="date"
+              value={eta}
+              onChange={(e) => handleEtaChange(e.target.value)}
+              className="h-10 rounded-xl bg-white/5 border-white/10 text-foreground [color-scheme:dark]"
+            />
+            {eta && (
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Client will see: <span className="text-primary font-medium">
+                  {new Date(eta + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                </span>
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Comment */}
       <Card>
         <CardContent className="pt-5 space-y-3">
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
@@ -164,11 +205,11 @@ export function AdminRequestActions({
           />
           <Button
             className="w-full shadow-xl shadow-primary/25"
-            disabled={!comment.trim()}
+            disabled={!comment.trim() || saving}
             onClick={handleAddComment}
           >
             <Send className="w-4 h-4 mr-2" />
-            Send Comment
+            {saving ? "Sending..." : "Send Comment"}
             <ArrowRight className="w-3.5 h-3.5 ml-auto opacity-40" />
           </Button>
         </CardContent>

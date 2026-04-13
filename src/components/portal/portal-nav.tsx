@@ -11,6 +11,7 @@ import {
   Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
   { href: "/portal", label: "Dashboard", icon: LayoutDashboard },
@@ -28,9 +29,11 @@ export function PortalNav({ userName, orgName }: PortalNavProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  function handleLogout() {
-    document.cookie = "mock_user_id=;path=/;max-age=0";
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     router.push("/login");
+    router.refresh();
   }
 
   function isActive(href: string) {

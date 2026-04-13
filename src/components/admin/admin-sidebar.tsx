@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 
 const NAV_ITEMS = [
@@ -27,9 +28,11 @@ export function AdminSidebar({ userName }: { userName: string }) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  function handleLogout() {
-    document.cookie = "mock_user_id=;path=/;max-age=0";
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     router.push("/login");
+    router.refresh();
   }
 
   function isActive(href: string) {

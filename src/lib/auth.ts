@@ -1,19 +1,24 @@
-import { cookies } from "next/headers";
-import { profiles } from "./mock-data";
-import type { Profile } from "./types";
+import { createClient } from "./supabase/server";
 
-/**
- * Mock auth: reads `mock_user_id` cookie to determine the current user.
- * In production, this will be replaced with Supabase Auth.
- */
-export async function getCurrentUser(): Promise<Profile | null> {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("mock_user_id")?.value;
-  if (!userId) return null;
-  return profiles.find((p) => p.id === userId) ?? null;
+export async function getCurrentUser() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  return profile;
 }
 
-export async function isAdmin(): Promise<boolean> {
+export async function isAdmin() {
   const user = await getCurrentUser();
   return user?.role === "admin";
 }

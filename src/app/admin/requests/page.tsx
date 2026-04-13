@@ -1,36 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { CategoryLabel } from "@/components/shared/category-label";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Search, ClipboardList } from "lucide-react";
-import {
-  requests,
-  organizations,
-  getProfile,
-  getOrganization,
-} from "@/lib/mock-data";
+import { Search, ClipboardList, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { ADMIN_TEAM } from "@/lib/constants";
-import type { RequestStatus, RequestPriority } from "@/lib/types";
 
 function formatAge(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -41,67 +26,60 @@ function formatAge(dateStr: string) {
 }
 
 export default function AdminRequestsPage() {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [orgs, setOrgs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [orgFilter, setOrgFilter] = useState<string>("all");
-  const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [orgFilter, setOrgFilter] = useState("all");
+  const [assigneeFilter, setAssigneeFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
 
-  const filtered = requests
-    .filter((r) => {
-      if (search) {
-        const q = search.toLowerCase();
-        const org = getOrganization(r.organization_id);
-        if (
-          !r.title.toLowerCase().includes(q) &&
-          !`kp-${String(r.request_number).padStart(4, "0")}`.includes(q) &&
-          !org?.name.toLowerCase().includes(q)
-        )
-          return false;
-      }
-      if (statusFilter !== "all" && r.status !== statusFilter) return false;
-      if (orgFilter !== "all" && r.organization_id !== orgFilter) return false;
-      if (assigneeFilter === "unassigned" && r.assigned_to !== null)
-        return false;
-      if (
-        assigneeFilter !== "all" &&
-        assigneeFilter !== "unassigned" &&
-        r.assigned_to !== assigneeFilter
-      )
-        return false;
-      if (priorityFilter !== "all" && r.priority !== priorityFilter)
-        return false;
-      return true;
-    })
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const [reqRes, orgRes] = await Promise.all([
+        supabase.from("requests").select("*, organization:organizations(id, name, slug)").order("created_at", { ascending: false }),
+        supabase.from("organizations").select("id, name").eq("active", true).order("name"),
+      ]);
+      setRequests(reqRes.data ?? []);
+      setOrgs(orgRes.data ?? []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  const filtered = requests.filter((r) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!r.title.toLowerCase().includes(q) && !`kp-${String(r.request_number).padStart(4, "0")}`.includes(q) && !r.organization?.name?.toLowerCase().includes(q)) return false;
+    }
+    if (statusFilter !== "all" && r.status !== statusFilter) return false;
+    if (orgFilter !== "all" && r.organization_id !== orgFilter) return false;
+    if (assigneeFilter === "unassigned" && r.assigned_to) return false;
+    if (assigneeFilter !== "all" && assigneeFilter !== "unassigned" && r.assigned_to !== assigneeFilter) return false;
+    if (priorityFilter !== "all" && r.priority !== priorityFilter) return false;
+    return true;
+  });
+
+  if (loading) {
+    return <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">All Requests</h1>
-        <p className="text-muted-foreground mt-1">
-          {requests.length} total requests across all clients
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight text-white">All Requests</h1>
+        <p className="text-muted-foreground mt-1">{requests.length} total requests across all clients</p>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-3 p-4 rounded-xl bg-card border border-border/60 shadow-sm">
+      <div className="flex flex-col md:flex-row gap-3 p-4 rounded-xl bg-card border border-white/[0.06] shadow-lg shadow-black/20">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search requests..."
-            className="pl-9 bg-background/80"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <Input placeholder="Search requests..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
-          <SelectTrigger className="w-full md:w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
+          <SelectTrigger className="w-full md:w-40"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="submitted">Submitted</SelectItem>
@@ -112,36 +90,22 @@ export default function AdminRequestsPage() {
           </SelectContent>
         </Select>
         <Select value={orgFilter} onValueChange={(v) => v && setOrgFilter(v)}>
-          <SelectTrigger className="w-full md:w-44">
-            <SelectValue placeholder="Client" />
-          </SelectTrigger>
+          <SelectTrigger className="w-full md:w-44"><SelectValue placeholder="Client" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Clients</SelectItem>
-            {organizations.map((org) => (
-              <SelectItem key={org.id} value={org.id}>
-                {org.name}
-              </SelectItem>
-            ))}
+            {orgs.map((org) => <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={assigneeFilter} onValueChange={(v) => v && setAssigneeFilter(v)}>
-          <SelectTrigger className="w-full md:w-40">
-            <SelectValue placeholder="Assignee" />
-          </SelectTrigger>
+          <SelectTrigger className="w-full md:w-40"><SelectValue placeholder="Assignee" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Assignees</SelectItem>
             <SelectItem value="unassigned">Unassigned</SelectItem>
-            {ADMIN_TEAM.map((member) => (
-              <SelectItem key={member.id} value={member.id}>
-                {member.name}
-              </SelectItem>
-            ))}
+            {ADMIN_TEAM.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={(v) => v && setPriorityFilter(v)}>
-          <SelectTrigger className="w-full md:w-36">
-            <SelectValue placeholder="Priority" />
-          </SelectTrigger>
+          <SelectTrigger className="w-full md:w-36"><SelectValue placeholder="Priority" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Priority</SelectItem>
             <SelectItem value="urgent">Urgent</SelectItem>
@@ -152,88 +116,47 @@ export default function AdminRequestsPage() {
         </Select>
       </div>
 
-      {/* Table */}
       {filtered.length === 0 ? (
-        <EmptyState
-          icon={ClipboardList}
-          title="No requests found"
-          description="Try adjusting your filters."
-        />
+        <EmptyState icon={ClipboardList} title="No requests found" description={requests.length === 0 ? "No requests have been submitted yet." : "Try adjusting your filters."} />
       ) : (
-        <div className="border border-border/60 rounded-xl overflow-hidden shadow-sm bg-card">
+        <div className="border border-white/[0.06] rounded-2xl overflow-hidden shadow-lg shadow-black/20 bg-card">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/40 hover:bg-muted/40">
-                <TableHead className="w-24">#</TableHead>
-                <TableHead>Request</TableHead>
-                <TableHead className="hidden md:table-cell">Client</TableHead>
-                <TableHead className="hidden lg:table-cell">
-                  Category
-                </TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Priority
-                </TableHead>
-                <TableHead className="hidden lg:table-cell">
-                  Assignee
-                </TableHead>
-                <TableHead className="hidden lg:table-cell text-right">
-                  Age
-                </TableHead>
+              <TableRow className="bg-white/[0.02] hover:bg-white/[0.02] border-white/[0.06]">
+                <TableHead className="w-24 text-muted-foreground">#</TableHead>
+                <TableHead className="text-muted-foreground">Request</TableHead>
+                <TableHead className="hidden md:table-cell text-muted-foreground">Client</TableHead>
+                <TableHead className="hidden lg:table-cell text-muted-foreground">Category</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
+                <TableHead className="hidden md:table-cell text-muted-foreground">Priority</TableHead>
+                <TableHead className="hidden lg:table-cell text-muted-foreground">Assignee</TableHead>
+                <TableHead className="hidden lg:table-cell text-right text-muted-foreground">Age</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((req) => {
-                const org = getOrganization(req.organization_id);
-                const assignee = req.assigned_to
-                  ? getProfile(req.assigned_to)
-                  : null;
-                return (
-                  <TableRow key={req.id} className="hover:bg-primary/[0.02] transition-colors cursor-pointer group">
-                    <TableCell>
-                      <Link
-                        href={`/admin/requests/${req.id}`}
-                        className="font-mono text-xs text-muted-foreground group-hover:text-primary transition-colors"
-                      >
-                        KP-{String(req.request_number).padStart(4, "0")}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link
-                        href={`/admin/requests/${req.id}`}
-                        className="font-medium text-sm group-hover:text-primary transition-colors"
-                      >
-                        {req.title}
-                      </Link>
-                      <span className="md:hidden block text-xs text-muted-foreground mt-0.5">
-                        {org?.name}
-                      </span>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                      {org?.name}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <CategoryLabel category={req.category} />
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={req.status} />
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <PriorityBadge priority={req.priority} />
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
-                      {assignee?.full_name ?? (
-                        <span className="text-amber-600 font-medium">
-                          Unassigned
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell text-sm text-muted-foreground text-right">
-                      {formatAge(req.created_at)}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {filtered.map((req) => (
+                <TableRow key={req.id} className="hover:bg-white/[0.03] border-white/[0.06] transition-colors cursor-pointer group">
+                  <TableCell>
+                    <Link href={`/admin/requests/${req.id}`} className="font-mono text-xs text-primary/60 group-hover:text-primary transition-colors">
+                      KP-{String(req.request_number).padStart(4, "0")}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/admin/requests/${req.id}`} className="font-medium text-sm text-white/80 group-hover:text-white transition-colors">
+                      {req.title}
+                    </Link>
+                    <span className="md:hidden block text-xs text-muted-foreground mt-0.5">{req.organization?.name}</span>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{req.organization?.name}</TableCell>
+                  <TableCell className="hidden lg:table-cell"><CategoryLabel category={req.category} /></TableCell>
+                  <TableCell><StatusBadge status={req.status} /></TableCell>
+                  <TableCell className="hidden md:table-cell"><PriorityBadge priority={req.priority} /></TableCell>
+                  <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                    {req.assigned_to ?? <span className="text-amber-400">Unassigned</span>}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell text-sm text-muted-foreground text-right">{formatAge(req.created_at)}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </div>
