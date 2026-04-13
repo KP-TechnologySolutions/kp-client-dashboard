@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-poppins);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -53,44 +53,42 @@
 }
 
 :root {
-  /* Indigo-based palette from design system */
-  --background: oklch(0.98 0.005 270);
-  --foreground: oklch(0.13 0.03 275);
-  --card: oklch(0.995 0.002 270);
-  --card-foreground: oklch(0.13 0.03 275);
-  --popover: oklch(0.995 0.002 270);
-  --popover-foreground: oklch(0.13 0.03 275);
-  --primary: oklch(0.49 0.22 270);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.955 0.015 270);
-  --secondary-foreground: oklch(0.2 0.04 275);
-  --muted: oklch(0.955 0.01 270);
-  --muted-foreground: oklch(0.46 0.03 270);
-  --accent: oklch(0.955 0.015 270);
-  --accent-foreground: oklch(0.2 0.04 275);
-  --destructive: oklch(0.577 0.245 27.325);
-  --warning: oklch(0.8 0.14 80);
-  --warning-foreground: oklch(0.35 0.08 60);
-  --success: oklch(0.62 0.19 155);
-  --success-foreground: oklch(0.99 0 0);
-  --border: oklch(0.92 0.01 270);
-  --input: oklch(0.92 0.01 270);
-  --ring: oklch(0.49 0.22 270);
-  --chart-1: oklch(0.49 0.22 270);
-  --chart-2: oklch(0.62 0.19 155);
-  --chart-3: oklch(0.8 0.14 80);
-  --chart-4: oklch(0.58 0.22 330);
-  --chart-5: oklch(0.55 0.18 30);
+  --background: #f8f9fc;
+  --foreground: #1e1b4b;
+  --card: #ffffff;
+  --card-foreground: #1e1b4b;
+  --popover: #ffffff;
+  --popover-foreground: #1e1b4b;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2ff;
+  --secondary-foreground: #312e81;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #eef2ff;
+  --accent-foreground: #312e81;
+  --destructive: #ef4444;
+  --warning: #f59e0b;
+  --warning-foreground: #78350f;
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #6366f1;
+  --chart-1: #6366f1;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ec4899;
+  --chart-5: #f97316;
   --radius: 0.75rem;
-  /* Dark sidebar with indigo tones */
-  --sidebar: oklch(0.15 0.035 275);
-  --sidebar-foreground: oklch(0.93 0.01 270);
-  --sidebar-primary: oklch(0.58 0.22 270);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.22 0.045 275);
-  --sidebar-accent-foreground: oklch(0.94 0.01 270);
-  --sidebar-border: oklch(0.26 0.04 275);
-  --sidebar-ring: oklch(0.58 0.22 270);
+  --sidebar: #1e1b4b;
+  --sidebar-foreground: #e0e7ff;
+  --sidebar-primary: #818cf8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #312e81;
+  --sidebar-accent-foreground: #e0e7ff;
+  --sidebar-border: #3730a3;
+  --sidebar-ring: #818cf8;
 }
 
 @layer base {
@@ -103,35 +101,39 @@
   html {
     @apply font-sans scroll-smooth;
   }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-poppins), system-ui, sans-serif;
+  }
 }
 
-/* Glassmorphism card utility */
+/* Glassmorphism card */
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-/* Gradient mesh background for login / hero areas */
+/* Gradient mesh for login */
 .gradient-mesh {
   background:
-    radial-gradient(at 20% 80%, oklch(0.85 0.12 270 / 0.4) 0%, transparent 50%),
-    radial-gradient(at 80% 20%, oklch(0.78 0.14 290 / 0.3) 0%, transparent 50%),
-    radial-gradient(at 50% 50%, oklch(0.88 0.08 250 / 0.2) 0%, transparent 70%),
-    oklch(0.97 0.01 270);
+    radial-gradient(ellipse at 20% 80%, rgba(99, 102, 241, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 40% 40%, rgba(129, 140, 248, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 70%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+    #f8f9fc;
 }
 
-/* Subtle animated gradient for stat card top borders */
+/* Stat card gradient bars */
 .stat-gradient-indigo {
-  background: linear-gradient(135deg, oklch(0.49 0.22 270), oklch(0.55 0.2 280));
+  background: linear-gradient(135deg, #6366f1, #818cf8);
 }
 .stat-gradient-amber {
-  background: linear-gradient(135deg, oklch(0.75 0.16 70), oklch(0.8 0.14 85));
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
 }
 .stat-gradient-emerald {
-  background: linear-gradient(135deg, oklch(0.62 0.19 155), oklch(0.68 0.17 165));
+  background: linear-gradient(135deg, #10b981, #34d399);
 }
 .stat-gradient-blue {
-  background: linear-gradient(135deg, oklch(0.55 0.2 255), oklch(0.6 0.18 265));
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
 }
