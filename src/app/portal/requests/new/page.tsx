@@ -156,17 +156,22 @@ export default function NewRequestPage() {
       </div>
 
       <Card className="shadow-sm">
-        <CardContent className="pt-7 pb-7 px-7">
+        <CardContent className="pt-5 pb-5 px-4 sm:pt-7 sm:pb-7 sm:px-7">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Organization picker — shows when user has multiple orgs */}
             {userOrgs.length > 1 && (
-              <div className="space-y-2">
-                <Label className="text-white/80 flex items-center gap-1.5">
-                  <Building2 className="w-4 h-4" />
-                  Which website is this for? <span className="text-red-400">*</span>
-                </Label>
+              <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-5 space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl gradient-indigo flex items-center justify-center shadow-md shadow-primary/20">
+                    <Building2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-white">Which website is this for?</p>
+                    <p className="text-xs text-muted-foreground">Select the business that needs changes</p>
+                  </div>
+                </div>
                 <Select value={selectedOrgId} onValueChange={(v) => v && setSelectedOrgId(v)}>
-                  <SelectTrigger className="h-12">
+                  <SelectTrigger className="h-12 text-base bg-white/5 border-white/10">
                     <SelectValue placeholder="Select a business" />
                   </SelectTrigger>
                   <SelectContent>

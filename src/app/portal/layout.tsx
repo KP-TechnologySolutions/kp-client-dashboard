@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { getOrganization } from "@/lib/mock-data";
+import { getOrganizationById } from "@/lib/queries";
 import { PortalNav } from "@/components/portal/portal-nav";
 
 export default async function PortalLayout({
@@ -14,7 +14,7 @@ export default async function PortalLayout({
   }
 
   const org = user.organization_id
-    ? getOrganization(user.organization_id)
+    ? await getOrganizationById(user.organization_id)
     : null;
 
   return (
@@ -23,8 +23,8 @@ export default async function PortalLayout({
         userName={user.full_name}
         orgName={org?.name ?? "KP Technology"}
       />
-      <main className="pb-20 md:pb-0">
-        <div className="max-w-5xl mx-auto p-4 md:p-6 lg:p-8">{children}</div>
+      <main className="pb-24 md:pb-0">
+        <div className="max-w-5xl mx-auto px-4 py-4 md:p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );

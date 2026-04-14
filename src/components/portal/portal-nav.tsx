@@ -105,7 +105,7 @@ export function PortalNav({ userName, orgName }: PortalNavProps) {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass border-t border-white/[0.06] flex items-center justify-around py-2 px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass border-t border-white/[0.06] flex items-center justify-around py-2 pb-[env(safe-area-inset-bottom,8px)] px-2">
         {NAV_ITEMS.map((item) => {
           const active = isActive(item.href);
           return (
