@@ -1,17 +1,42 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
-// TODO: Switch to portal@kptechnologysolutions.com once domain is verified on Resend
-const FROM_EMAIL = "KP Technology Portal <onboarding@resend.dev>";
+const FROM_EMAIL = process.env.GMAIL_USER || "KPTechnologySolutions@gmail.com";
 const ADMIN_EMAILS = [
-  process.env.ADMIN_EMAIL_1 || "hpickus@gmail.com",
+  process.env.ADMIN_EMAIL_1 || "KPTechnologySolutions@gmail.com",
   process.env.ADMIN_EMAIL_2,
 ].filter(Boolean) as string[];
 
-// Until domain is verified, Resend can only send to the account owner.
-// Route all emails to admin instead of clients for now.
-const DOMAIN_VERIFIED = false;
+async function sendEmail({
+  to,
+  cc,
+  subject,
+  html,
+}: {
+  to: string | string[];
+  cc?: string[];
+  subject: string;
+  html: string;
+}) {
+  try {
+    await transporter.sendMail({
+      from: `KP Technology Portal <${FROM_EMAIL}>`,
+      to: Array.isArray(to) ? to.join(", ") : to,
+      cc: cc?.join(", "),
+      subject,
+      html,
+    });
+  } catch (e) {
+    console.error("Failed to send email:", e);
+  }
+}
 
 export async function sendNewRequestNotification({
   requestNumber,
@@ -28,12 +53,9 @@ export async function sendNewRequestNotification({
   priority: string;
   category: string;
 }) {
-  const subject = `[KP-${String(requestNumber).padStart(4, "0")}] New request from ${clientName}: ${title}`;
-
-  await resend.emails.send({
-    from: FROM_EMAIL,
+  await sendEmail({
     to: ADMIN_EMAILS,
-    subject,
+    subject: `[KP-${String(requestNumber).padStart(4, "0")}] New request from ${clientName}: ${title}`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #6366f1; padding: 20px 24px; border-radius: 12px 12px 0 0;">
@@ -79,16 +101,12 @@ export async function sendStatusChangeNotification({
   };
 
   const statusLabel = statusLabels[newStatus] || newStatus;
-  const subject = `[KP-${String(requestNumber).padStart(4, "0")}] Your request is now ${statusLabel}`;
-
   const isComplete = newStatus === "complete";
 
-  // Send to client AND CC admins (route to admin only until domain verified)
-  await resend.emails.send({
-    from: FROM_EMAIL,
-    to: DOMAIN_VERIFIED ? [clientEmail] : ADMIN_EMAILS,
-    cc: DOMAIN_VERIFIED ? ADMIN_EMAILS : undefined,
-    subject: DOMAIN_VERIFIED ? subject : `${subject} (for ${clientName} - ${clientEmail})`,
+  await sendEmail({
+    to: clientEmail,
+    cc: ADMIN_EMAILS,
+    subject: `[KP-${String(requestNumber).padStart(4, "0")}] Your request is now ${statusLabel}`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: ${isComplete ? "#10b981" : "#6366f1"}; padding: 20px 24px; border-radius: 12px 12px 0 0;">
@@ -125,13 +143,10 @@ export async function sendCommentNotification({
   recipientEmail: string;
   recipientName: string;
 }) {
-  const subject = `[KP-${String(requestNumber).padStart(4, "0")}] New comment on: ${title}`;
-
-  await resend.emails.send({
-    from: FROM_EMAIL,
-    to: DOMAIN_VERIFIED ? [recipientEmail] : ADMIN_EMAILS,
-    cc: DOMAIN_VERIFIED ? ADMIN_EMAILS : undefined,
-    subject: DOMAIN_VERIFIED ? subject : `${subject} (for ${recipientName} - ${recipientEmail})`,
+  await sendEmail({
+    to: recipientEmail,
+    cc: ADMIN_EMAILS,
+    subject: `[KP-${String(requestNumber).padStart(4, "0")}] New comment on: ${title}`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #6366f1; padding: 20px 24px; border-radius: 12px 12px 0 0;">
