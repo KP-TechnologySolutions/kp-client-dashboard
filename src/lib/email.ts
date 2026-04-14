@@ -2,7 +2,8 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "KP Technology Portal <portal@kptechnologysolutions.com>";
+// TODO: Switch to portal@kptechnologysolutions.com once domain is verified on Resend
+const FROM_EMAIL = "KP Technology Portal <onboarding@resend.dev>";
 const ADMIN_EMAILS = [
   process.env.ADMIN_EMAIL_1 || "KPTechnologySolutions@gmail.com",
   process.env.ADMIN_EMAIL_2,
