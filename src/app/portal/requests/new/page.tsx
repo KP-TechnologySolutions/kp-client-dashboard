@@ -12,10 +12,15 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Upload, X, FileIcon, ImageIcon } from "lucide-react";
+import { ArrowLeft, Send, Upload, X, FileIcon, ImageIcon, Building2 } from "lucide-react";
 import { CATEGORY_CONFIG, PRIORITY_CONFIG } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { createRequest } from "@/lib/actions";
+
+interface UserOrg {
+  organization_id: string;
+  name: string;
+}
 
 export default function NewRequestPage() {
   const router = useRouter();
@@ -25,27 +30,51 @@ export default function NewRequestPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("normal");
-  const [orgId, setOrgId] = useState<string | null>(null);
+  const [selectedOrgId, setSelectedOrgId] = useState<string>("");
+  const [userOrgs, setUserOrgs] = useState<UserOrg[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
 
   useEffect(() => {
-    async function loadOrg() {
+    async function loadOrgs() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
+      if (!user) return;
+
+      setUserId(user.id);
+
+      // Get all orgs this user is linked to
+      const { data: orgLinks } = await supabase
+        .from("user_organizations")
+        .select("organization_id, organizations(name)")
+        .eq("user_id", user.id);
+
+      if (orgLinks && orgLinks.length > 0) {
+        const orgs = orgLinks.map((link: any) => ({
+          organization_id: link.organization_id,
+          name: link.organizations?.name ?? "Unknown",
+        }));
+        setUserOrgs(orgs);
+        // Auto-select if only one org
+        if (orgs.length === 1) {
+          setSelectedOrgId(orgs[0].organization_id);
+        }
+      } else {
+        // Fallback to profile's org
         const { data: profile } = await supabase.from("profiles").select("organization_id").eq("id", user.id).single();
-        setOrgId(profile?.organization_id);
+        if (profile?.organization_id) {
+          const { data: org } = await supabase.from("organizations").select("name").eq("id", profile.organization_id).single();
+          setUserOrgs([{ organization_id: profile.organization_id, name: org?.name ?? "Unknown" }]);
+          setSelectedOrgId(profile.organization_id);
+        }
       }
     }
-    loadOrg();
+    loadOrgs();
   }, []);
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+      setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
     }
   }
 
@@ -56,8 +85,7 @@ export default function NewRequestPage() {
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     if (e.dataTransfer.files) {
-      const newFiles = Array.from(e.dataTransfer.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+      setFiles((prev) => [...prev, ...Array.from(e.dataTransfer.files)]);
     }
   }
 
@@ -73,35 +101,28 @@ export default function NewRequestPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !description.trim() || !category || !orgId || !userId) {
+    if (!title.trim() || !description.trim() || !category || !selectedOrgId || !userId) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     setLoading(true);
     try {
-      // Create the request first
       const data = await createRequest({
-        title, description, category, priority, organization_id: orgId,
+        title, description, category, priority, organization_id: selectedOrgId,
       });
 
-      // Upload files if any
+      // Upload files
       if (files.length > 0) {
         const supabase = createClient();
         for (const file of files) {
-          const fileExt = file.name.split(".").pop();
           const filePath = `${data.id}/${Date.now()}-${file.name}`;
-
           const { error: uploadError } = await supabase.storage
             .from("request-attachments")
             .upload(filePath, file);
 
-          if (uploadError) {
-            console.error("Upload failed:", uploadError);
-            continue;
-          }
+          if (uploadError) { console.error("Upload failed:", uploadError); continue; }
 
-          // Save attachment record
           await supabase.from("request_attachments").insert({
             request_id: data.id,
             storage_path: filePath,
@@ -137,6 +158,41 @@ export default function NewRequestPage() {
       <Card className="shadow-sm">
         <CardContent className="pt-7 pb-7 px-7">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Organization picker — shows when user has multiple orgs */}
+            {userOrgs.length > 1 && (
+              <div className="space-y-2">
+                <Label className="text-white/80 flex items-center gap-1.5">
+                  <Building2 className="w-4 h-4" />
+                  Which website is this for? <span className="text-red-400">*</span>
+                </Label>
+                <Select value={selectedOrgId} onValueChange={(v) => v && setSelectedOrgId(v)}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select a business" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {userOrgs.map((org) => (
+                      <SelectItem key={org.organization_id} value={org.organization_id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Show selected org for single-org users */}
+            {userOrgs.length === 1 && (
+              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-primary/5 border border-primary/10">
+                <div className="w-8 h-8 rounded-lg gradient-indigo flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">{userOrgs[0].name}</p>
+                  <p className="text-xs text-muted-foreground">Submitting request for this business</p>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="title" className="text-white/80">Title <span className="text-red-400">*</span></Label>
               <Input id="title" placeholder="e.g., Update lunch menu prices" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -193,28 +249,16 @@ export default function NewRequestPage() {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
                   <Upload className="w-5 h-5 text-primary/60" />
                 </div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Drag and drop files here, or click to browse
-                </p>
-                <p className="text-xs text-muted-foreground/60">
-                  Images, PDFs, documents — up to 10MB each
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Drag and drop files here, or click to browse</p>
+                <p className="text-xs text-muted-foreground/60">Images, PDFs, documents — up to 10MB each</p>
               </div>
 
-              {/* File list */}
               {files.length > 0 && (
                 <div className="space-y-2 mt-3">
                   {files.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]"
-                    >
+                    <div key={index} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                       <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        {isImage(file) ? (
-                          <ImageIcon className="w-4 h-4 text-primary" />
-                        ) : (
-                          <FileIcon className="w-4 h-4 text-primary" />
-                        )}
+                        {isImage(file) ? <ImageIcon className="w-4 h-4 text-primary" /> : <FileIcon className="w-4 h-4 text-primary" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white/90 truncate">{file.name}</p>
@@ -229,16 +273,14 @@ export default function NewRequestPage() {
                       </button>
                     </div>
                   ))}
-                  <p className="text-xs text-muted-foreground">
-                    {files.length} file{files.length !== 1 ? "s" : ""} selected
-                  </p>
+                  <p className="text-xs text-muted-foreground">{files.length} file{files.length !== 1 ? "s" : ""} selected</p>
                 </div>
               )}
             </div>
 
             <div className="flex gap-3 pt-4">
               <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-              <Button type="submit" disabled={loading} className="flex-1 shadow-xl shadow-primary/25">
+              <Button type="submit" disabled={loading || !selectedOrgId} className="flex-1 shadow-xl shadow-primary/25">
                 <Send className="w-4 h-4 mr-2" />
                 {loading ? "Submitting..." : "Submit Request"}
               </Button>

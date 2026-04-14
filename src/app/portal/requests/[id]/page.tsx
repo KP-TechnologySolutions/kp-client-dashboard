@@ -21,11 +21,12 @@ export default async function PortalRequestDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !user.organization_id) redirect("/login");
+  if (!user) redirect("/login");
 
   const { id } = await params;
   const request = await getRequestById(id);
-  if (!request || request.organization_id !== user.organization_id) notFound();
+  // RLS handles access control — if the query returns null, user doesn't have access
+  if (!request) notFound();
 
   const [comments, activity, attachments] = await Promise.all([
     getRequestComments(id, false),

@@ -59,6 +59,41 @@ export async function getRequestsForOrg(orgId: string) {
   return data ?? [];
 }
 
+export async function getRequestsForUserOrgs(userId: string) {
+  const supabase = await createClient();
+
+  // Get all org IDs for this user
+  const { data: orgLinks } = await supabase
+    .from("user_organizations")
+    .select("organization_id")
+    .eq("user_id", userId);
+
+  const orgIds = orgLinks?.map((l) => l.organization_id) ?? [];
+
+  // Fallback to profile org
+  if (orgIds.length === 0) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", userId)
+      .single();
+    if (profile?.organization_id) orgIds.push(profile.organization_id);
+  }
+
+  if (orgIds.length === 0) return [];
+
+  const { data } = await supabase
+    .from("requests")
+    .select(`
+      *,
+      organization:organizations(id, name, slug),
+      submitter:profiles!submitted_by(id, full_name, email, role)
+    `)
+    .in("organization_id", orgIds)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
 export async function getRequestById(id: string) {
   const supabase = await createClient();
   const { data } = await supabase

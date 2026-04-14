@@ -33,10 +33,21 @@ export default function PortalDashboard() {
 
       setUser(profile);
 
+      // Get all orgs this user belongs to
+      const { data: orgLinks } = await supabase
+        .from("user_organizations")
+        .select("organization_id")
+        .eq("user_id", authUser.id);
+
+      const orgIds = orgLinks?.map((l: any) => l.organization_id) ?? [];
+      if (orgIds.length === 0 && profile.organization_id) {
+        orgIds.push(profile.organization_id);
+      }
+
       const { data: requests } = await supabase
         .from("requests")
-        .select("*")
-        .eq("organization_id", profile.organization_id)
+        .select("*, organization:organizations(name)")
+        .in("organization_id", orgIds)
         .order("updated_at", { ascending: false });
 
       const reqs = requests ?? [];
@@ -110,6 +121,7 @@ export default function PortalDashboard() {
                         <span className="text-sm font-medium text-white/80 truncate group-hover:text-white transition-colors">{req.title}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
+                        {req.organization?.name && (<><span className="text-xs text-primary/50">{req.organization.name}</span><span className="text-white/10">·</span></>)}
                         <span className="text-xs text-muted-foreground">{formatDate(req.created_at)}</span>
                         {req.assigned_to && (<><span className="text-white/10">·</span><span className="text-xs text-muted-foreground">Assigned to {req.assigned_to}</span></>)}
                       </div>

@@ -8,7 +8,7 @@ import { CategoryLabel } from "@/components/shared/category-label";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PlusCircle, ClipboardList } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { getRequestsForOrg } from "@/lib/queries";
+import { getRequestsForUserOrgs } from "@/lib/queries";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -16,9 +16,9 @@ function formatDate(dateStr: string) {
 
 export default async function PortalRequestsPage() {
   const user = await getCurrentUser();
-  if (!user || !user.organization_id) redirect("/login");
+  if (!user) redirect("/login");
 
-  const allRequests = await getRequestsForOrg(user.organization_id);
+  const allRequests = await getRequestsForUserOrgs(user.id);
   const active = allRequests.filter((r: any) => r.status !== "complete" && r.status !== "rejected");
   const closed = allRequests.filter((r: any) => r.status === "complete" || r.status === "rejected");
 
@@ -75,6 +75,7 @@ function RequestCard({ req }: { req: any }) {
               </div>
               <h3 className="text-sm font-medium text-white/90 mb-1 group-hover:text-white transition-colors">{req.title}</h3>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                {req.organization?.name && <span className="text-primary/50">{req.organization.name}</span>}
                 <span>{formatDate(req.created_at)}</span>
                 <CategoryLabel category={req.category} />
                 {req.assigned_to && <span>Assigned to {req.assigned_to}</span>}
