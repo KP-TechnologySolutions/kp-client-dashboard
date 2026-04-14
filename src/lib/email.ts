@@ -5,9 +5,13 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // TODO: Switch to portal@kptechnologysolutions.com once domain is verified on Resend
 const FROM_EMAIL = "KP Technology Portal <onboarding@resend.dev>";
 const ADMIN_EMAILS = [
-  process.env.ADMIN_EMAIL_1 || "KPTechnologySolutions@gmail.com",
+  process.env.ADMIN_EMAIL_1 || "hpickus@gmail.com",
   process.env.ADMIN_EMAIL_2,
 ].filter(Boolean) as string[];
+
+// Until domain is verified, Resend can only send to the account owner.
+// Route all emails to admin instead of clients for now.
+const DOMAIN_VERIFIED = false;
 
 export async function sendNewRequestNotification({
   requestNumber,
@@ -79,12 +83,12 @@ export async function sendStatusChangeNotification({
 
   const isComplete = newStatus === "complete";
 
-  // Send to client AND CC admins
+  // Send to client AND CC admins (route to admin only until domain verified)
   await resend.emails.send({
     from: FROM_EMAIL,
-    to: [clientEmail],
-    cc: ADMIN_EMAILS,
-    subject,
+    to: DOMAIN_VERIFIED ? [clientEmail] : ADMIN_EMAILS,
+    cc: DOMAIN_VERIFIED ? ADMIN_EMAILS : undefined,
+    subject: DOMAIN_VERIFIED ? subject : `${subject} (for ${clientName} - ${clientEmail})`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: ${isComplete ? "#10b981" : "#6366f1"}; padding: 20px 24px; border-radius: 12px 12px 0 0;">
@@ -125,9 +129,9 @@ export async function sendCommentNotification({
 
   await resend.emails.send({
     from: FROM_EMAIL,
-    to: [recipientEmail],
-    cc: ADMIN_EMAILS,
-    subject,
+    to: DOMAIN_VERIFIED ? [recipientEmail] : ADMIN_EMAILS,
+    cc: DOMAIN_VERIFIED ? ADMIN_EMAILS : undefined,
+    subject: DOMAIN_VERIFIED ? subject : `${subject} (for ${recipientName} - ${recipientEmail})`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #6366f1; padding: 20px 24px; border-radius: 12px 12px 0 0;">
