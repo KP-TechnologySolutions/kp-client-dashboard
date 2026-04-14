@@ -2,6 +2,11 @@
 
 import { createClient } from "./supabase/server";
 import { revalidatePath } from "next/cache";
+import {
+  sendNewRequestNotification,
+  sendStatusChangeNotification,
+  sendCommentNotification,
+} from "./email";
 
 export async function createRequest(formData: {
   title: string;
@@ -39,6 +44,26 @@ export async function createRequest(formData: {
     action: "created",
   });
 
+  // Get org name and submitter name for email
+  const [{ data: org }, { data: profile }] = await Promise.all([
+    supabase.from("organizations").select("name").eq("id", formData.organization_id).single(),
+    supabase.from("profiles").select("full_name").eq("id", user.id).single(),
+  ]);
+
+  // Email admins
+  try {
+    await sendNewRequestNotification({
+      requestNumber: data.request_number,
+      title: formData.title,
+      clientName: org?.name ?? "Unknown",
+      submittedBy: profile?.full_name ?? user.email ?? "Unknown",
+      priority: formData.priority,
+      category: formData.category,
+    });
+  } catch (e) {
+    console.error("Failed to send email:", e);
+  }
+
   revalidatePath("/portal");
   revalidatePath("/portal/requests");
   revalidatePath("/admin");
@@ -58,10 +83,10 @@ export async function updateRequestStatus(
 
   if (!user) throw new Error("Not authenticated");
 
-  // Get current status
-  const { data: current } = await supabase
+  // Get current request with org and submitter info
+  const { data: request } = await supabase
     .from("requests")
-    .select("status")
+    .select("*, organization:organizations(name), submitter:profiles!submitted_by(full_name, email)")
     .eq("id", requestId)
     .single();
 
@@ -83,9 +108,24 @@ export async function updateRequestStatus(
     request_id: requestId,
     actor_id: user.id,
     action: "status_changed",
-    old_value: current?.status,
+    old_value: request?.status,
     new_value: newStatus,
   });
+
+  // Email the client who submitted the request
+  if (request?.submitter?.email) {
+    try {
+      await sendStatusChangeNotification({
+        requestNumber: request.request_number,
+        title: request.title,
+        newStatus,
+        clientEmail: request.submitter.email,
+        clientName: request.submitter.full_name ?? "there",
+      });
+    } catch (e) {
+      console.error("Failed to send email:", e);
+    }
+  }
 
   revalidatePath("/admin");
   revalidatePath("/admin/requests");
@@ -147,6 +187,42 @@ export async function addComment(
     actor_id: user.id,
     action: "commented",
   });
+
+  // Send comment notification (skip internal comments)
+  if (!isInternal) {
+    const [{ data: request }, { data: commenter }] = await Promise.all([
+      supabase.from("requests").select("*, submitter:profiles!submitted_by(full_name, email)").eq("id", requestId).single(),
+      supabase.from("profiles").select("full_name, role").eq("id", user.id).single(),
+    ]);
+
+    if (request) {
+      try {
+        if (commenter?.role === "admin" && request.submitter?.email) {
+          // Admin commented → notify client
+          await sendCommentNotification({
+            requestNumber: request.request_number,
+            title: request.title,
+            commentBy: commenter.full_name ?? "KP Team",
+            commentBody: body,
+            recipientEmail: request.submitter.email,
+            recipientName: request.submitter.full_name ?? "there",
+          });
+        } else if (commenter?.role === "client") {
+          // Client commented → admins get notified via CC (built into sendCommentNotification)
+          await sendCommentNotification({
+            requestNumber: request.request_number,
+            title: request.title,
+            commentBy: commenter.full_name ?? "Client",
+            commentBody: body,
+            recipientEmail: process.env.ADMIN_EMAIL_1 || "KPTechnologySolutions@gmail.com",
+            recipientName: "KP Team",
+          });
+        }
+      } catch (e) {
+        console.error("Failed to send comment email:", e);
+      }
+    }
+  }
 
   revalidatePath(`/admin/requests/${requestId}`);
   revalidatePath(`/portal/requests/${requestId}`);
