@@ -1,98 +1,129 @@
-# Setup Guide
+# Setup Guide for Shawn
 
-Step-by-step instructions to get the KP Client Dashboard running on your machine.
+Everything you need to know about the KP Client Dashboard.
 
-## Prerequisites
+## What Is This?
 
-- **Node.js 18+** — Download from [nodejs.org](https://nodejs.org/) (LTS version recommended)
-- **Git** — Should already be installed on Mac/Linux. Windows: [git-scm.com](https://git-scm.com/)
-- **GitHub access** — You need access to the KP-TechnologySolutions org
+A web dashboard where our clients (56 Kitchen, Elle, Water Heater Doctors, etc.) can submit website change requests instead of emailing us. We see everything in an admin panel, assign work, update status, and they get notified automatically.
 
-## Step 1: Clone the repo
+**Live site:** https://portal.kptechnologysolutions.com
+
+## How to Log In
+
+Go to https://portal.kptechnologysolutions.com and use:
+
+- **Email:** KPTechnologySolutions@gmail.com
+- **Password:** Money22$$
+
+This takes you to the admin dashboard where you can see all client requests.
+
+## What You Can Do as Admin
+
+### Dashboard
+See stat cards (unassigned, in progress, completed) and requests that need attention.
+
+### Requests
+Click **Requests** in the sidebar to see all requests across all clients. You can:
+- **Search** by title or request number
+- **Filter** by status, client, assignee, or priority
+- Click any request to see the full details
+
+### On a Request Detail Page
+- **Change status** — Click Reviewed, Start Work, Complete, or Reject. The button stays lit to show the current status.
+- **Assign** — Pick Hal or Shawn from the dropdown. This is how we track who's working on what.
+- **Set ETA** — Pick a date. The client will see this as the expected completion date.
+- **Add comments** — Type a comment and send. The client gets an email notification.
+- **Internal notes** — These show in yellow and are ONLY visible to us, never to clients.
+- **View attachments** — Download any files the client uploaded (screenshots, PDFs, etc.)
+
+### Clients
+Click **Clients** in the sidebar to see all organizations, their contact info, and request counts.
+
+## How Clients Use It
+
+Clients go to the same URL (https://portal.kptechnologysolutions.com) and log in with their email. They can:
+
+1. **Submit a new request** — Title, description, category, priority, file attachments
+2. **Track status** — See a visual timeline (Submitted → Reviewed → In Progress → Complete)
+3. **See ETA** — The date we set for expected completion
+4. **Comment** — Ask follow-up questions or provide more details
+5. **Download attachments** — Access any files on the request
+
+They CANNOT see:
+- Other clients' requests
+- Our internal notes
+- The admin dashboard
+- Who else uses the system
+
+## Email Notifications
+
+Emails are sent automatically:
+
+| When | Who Gets Emailed |
+|------|-----------------|
+| Client submits a request | Both of us (Hal & Shawn) |
+| We change the status | The client (we're CC'd) |
+| We mark it complete | The client (we're CC'd) |
+| We add a comment | The client (we're CC'd) |
+| Client adds a comment | Both of us |
+
+All emails CC both admin addresses so neither of us misses anything.
+
+## Client Accounts (Current)
+
+| Client | Email | Password |
+|--------|-------|----------|
+| 56 Kitchen | izzy@56kitchen.com | Money22$$ |
+| 56 Kitchen | heather@56kitchen.com | Money22$$ |
+| Water Heater Doctors | stellutiplumbing@aol.com | Money22$$ |
+| Water Heater Doctors | callahanplumbingandheating@gmail.com | Money22$$ |
+| KMP Clarity | kara@kmpclarity.com | Money22$$ |
+| Impact Care HR | info@impactcarehr.com | Money22$$ |
+| People Express | peoplereservations@gmail.com | Money22$$ |
+
+**Important:** We need to change these passwords before giving clients access.
+
+## Organizations Set Up
+
+56 Kitchen, Elle, 56 Social, 56 Tavern, 56 Catering, Water Heater Doctors, KMP Clarity, Impact Care HR, People Express
+
+The 56 brands all share Izzy and Heather as contacts (under 56 Kitchen currently).
+
+## Why Is the Code Public on GitHub?
+
+Vercel (our free hosting) requires it for the free plan with organization repos. This is safe:
+- No passwords or API keys are in the code
+- All client data is in our private Supabase database
+- The dashboard requires login to access anything
+- This is how most SaaS companies operate
+
+## Running Locally (Optional)
+
+If you want to run it on your own machine:
 
 ```bash
 git clone https://github.com/KP-TechnologySolutions/kp-client-dashboard.git
 cd kp-client-dashboard
-```
-
-## Step 2: Install dependencies
-
-```bash
 npm install
 ```
 
-This will install Next.js, React, Tailwind, shadcn/ui, Framer Motion, and all other packages.
-
-## Step 3: Run the dev server
+Ask Hal for the `.env.local` file (has the API keys), then:
 
 ```bash
 npm run dev
 ```
 
-Open your browser to **http://localhost:3000**
+Open http://localhost:3000
 
-## Step 4: Log in
+## How Updates Get Deployed
 
-You'll see a login page with quick-login buttons at the bottom:
+1. We make code changes locally
+2. Push to GitHub
+3. Vercel auto-detects and rebuilds (1-2 minutes)
+4. Live site updates automatically
 
-- **KP Admin** — Click this to see the admin dashboard (what we see)
-- **Client names** (Mike, Sarah, James, Tom) — Click any of these to see what that client sees in their portal
+No manual deployment needed.
 
-No real passwords needed right now — it's all mock auth for development.
+## Questions?
 
-## What you'll see
-
-### Admin side (`/admin`)
-- **Dashboard** — Overview with stat cards, requests needing attention, active requests
-- **Requests** — Full table of all requests with filters (search, status, client, assignee, priority)
-- **Request Detail** — Click any request to see details, change status, assign to Hal or Shawn, add comments
-- **Clients** — List of all client organizations with request counts
-- **Settings** — Team and notification config (placeholder for now)
-
-### Client side (`/portal`)
-- **Dashboard** — Their request stats and recent activity
-- **My Requests** — All their requests with active/completed grouping
-- **New Request** — Form to submit a website change request
-- **Request Detail** — Status timeline, comments (they can't see our internal notes)
-
-## Project structure (key files)
-
-```
-src/lib/mock-data.ts    → All the fake data (organizations, users, requests)
-src/lib/types.ts        → TypeScript types
-src/lib/constants.ts    → Status colors, categories, team members (Hal & Shawn)
-src/middleware.ts       → Route protection (keeps clients out of /admin)
-```
-
-## Common commands
-
-| Command | What it does |
-|---------|-------------|
-| `npm run dev` | Start dev server at localhost:3000 |
-| `npm run build` | Build for production (checks for errors) |
-| `npm run lint` | Run linter |
-
-## Troubleshooting
-
-**Port 3000 already in use?**
-```bash
-npx kill-port 3000
-npm run dev
-```
-
-**Seeing stale styles?**
-Hard refresh: `Cmd + Shift + R` (Mac) or `Ctrl + Shift + R` (Windows)
-
-**Node version issues?**
-Make sure you're on Node 18 or higher:
-```bash
-node --version
-```
-
-## Next steps
-
-This is Phase 1 — the UI is complete with mock data. The next phases are:
-
-1. **Supabase** — Real database, auth, and file storage
-2. **Email notifications** — Resend for status updates and reminders
-3. **Deploy to Vercel** — Live URL for clients to use
+Ask Hal. The code is at https://github.com/KP-TechnologySolutions/kp-client-dashboard
