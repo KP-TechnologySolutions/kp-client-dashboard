@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 import { createClient } from "@/lib/supabase/server";
 
-const analyticsClient = new BetaAnalyticsDataClient({
-  credentials: {
-    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-  },
-});
+function getAnalyticsClient() {
+  const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (!json) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON not configured");
+  const credentials = JSON.parse(json);
+  return new BetaAnalyticsDataClient({ credentials });
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
   try {
     const startDate = `${period}daysAgo`;
     const propertyId = `properties/${org.ga_property_id}`;
+    const analyticsClient = getAnalyticsClient();
 
     // Run multiple reports in parallel
     const [overviewRes, pagesRes, sourcesRes, dailyRes] = await Promise.all([
