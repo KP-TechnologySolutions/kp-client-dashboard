@@ -9,6 +9,7 @@ import {
   User,
   LogOut,
   Layers,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
   { href: "/portal", label: "Dashboard", icon: LayoutDashboard },
   { href: "/portal/requests", label: "My Requests", icon: ClipboardList },
   { href: "/portal/requests/new", label: "New Request", icon: PlusCircle },
+  { href: "/portal/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/portal/account", label: "Account", icon: User },
 ];
 
