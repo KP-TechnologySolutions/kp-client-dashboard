@@ -151,9 +151,9 @@ export default function AnalyticsPage() {
           <div className="flex items-center gap-3">
             {orgs.length > 1 && (
               <Select value={selectedOrgId} onValueChange={(v) => v && setSelectedOrgId(v)}>
-                <SelectTrigger className="w-48 bg-white/5 border-white/10">
+                <SelectTrigger className="w-52 bg-white/5 border-white/10">
                   <Building2 className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <SelectValue />
+                  <span className="truncate">{orgs.find(o => o.organization_id === selectedOrgId)?.name ?? "Select"}</span>
                 </SelectTrigger>
                 <SelectContent>
                   {orgs.map((org) => (
@@ -163,8 +163,8 @@ export default function AnalyticsPage() {
               </Select>
             )}
             <Select value={period} onValueChange={(v) => v && setPeriod(v)}>
-              <SelectTrigger className="w-36 bg-white/5 border-white/10">
-                <SelectValue />
+              <SelectTrigger className="w-40 bg-white/5 border-white/10">
+                <span>{period === "7" ? "Last 7 days" : period === "14" ? "Last 14 days" : period === "28" ? "Last 28 days" : "Last 90 days"}</span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="7">Last 7 days</SelectItem>
@@ -220,24 +220,37 @@ export default function AnalyticsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-end gap-1 h-40">
-                  {data.daily.map((day, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-                      <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                        {day.users}
-                      </span>
-                      <div
-                        className="w-full rounded-t-md bg-gradient-to-t from-primary/80 to-primary/40 hover:from-primary hover:to-primary/60 transition-all cursor-pointer min-h-[2px]"
-                        style={{ height: `${(day.users / maxDailyUsers) * 100}%` }}
-                      />
-                      {data.daily.length <= 30 && (
-                        <span className="text-[8px] text-muted-foreground/50 rotate-0">
-                          {i % Math.ceil(data.daily.length / 7) === 0 ? day.date : ""}
-                        </span>
-                      )}
+                {data.daily.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No daily data available</p>
+                ) : (
+                  <div>
+                    <div className="flex items-end gap-[2px]" style={{ height: 160 }}>
+                      {data.daily.map((day, i) => {
+                        const pct = Math.max((day.users / maxDailyUsers) * 100, 2);
+                        return (
+                          <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group cursor-pointer relative">
+                            <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary/90 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                              {day.users}
+                            </div>
+                            <div
+                              className="w-full rounded-t bg-gradient-to-t from-primary to-primary/50 group-hover:from-primary group-hover:to-primary/70 transition-all"
+                              style={{ height: `${pct}%` }}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-[2px] mt-2">
+                      {data.daily.map((day, i) => (
+                        <div key={i} className="flex-1 text-center">
+                          <span className="text-[8px] text-muted-foreground/40">
+                            {i % Math.max(Math.ceil(data.daily.length / 7), 1) === 0 ? day.date : ""}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </FadeIn>
