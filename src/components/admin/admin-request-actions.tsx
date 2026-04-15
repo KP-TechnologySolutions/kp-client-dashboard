@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,10 @@ import {
   Send,
   UserCircle,
   ArrowRight,
+  Trash2,
 } from "lucide-react";
 import { ADMIN_TEAM } from "@/lib/constants";
-import { updateRequestStatus, assignRequest, addComment, updateRequestEta } from "@/lib/actions";
+import { updateRequestStatus, assignRequest, addComment, updateRequestEta, deleteRequest } from "@/lib/actions";
 import type { RequestStatus } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 
@@ -69,11 +71,13 @@ export function AdminRequestActions({
 }: {
   request: { id: string; status: string; assigned_to: string | null; request_number: number; due_date: string | null };
 }) {
+  const router = useRouter();
   const [currentStatus, setCurrentStatus] = useState<RequestStatus>(request.status as RequestStatus);
   const [assignee, setAssignee] = useState(request.assigned_to ?? "unassigned");
   const [eta, setEta] = useState(request.due_date ?? "");
   const [comment, setComment] = useState("");
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   async function handleStatusChange(newStatus: RequestStatus) {
     setCurrentStatus(newStatus);
@@ -102,6 +106,16 @@ export function AdminRequestActions({
       toast.success(date ? `ETA set to ${new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : "ETA cleared");
     } catch {
       toast.error("Failed to update ETA");
+    }
+  }
+
+  async function handleDelete() {
+    try {
+      await deleteRequest(request.id);
+      toast.success("Request deleted");
+      router.push("/admin/requests");
+    } catch {
+      toast.error("Failed to delete request");
     }
   }
 
@@ -214,6 +228,42 @@ export function AdminRequestActions({
           </Button>
         </CardContent>
       </Card>
+
+      {/* Delete */}
+      <div className="pt-2">
+        {!confirmDelete ? (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-red-400 transition-colors cursor-pointer w-full justify-center py-2"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Delete Request
+          </button>
+        ) : (
+          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 space-y-2">
+            <p className="text-xs text-red-400 text-center font-medium">Are you sure? This cannot be undone.</p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={() => setConfirmDelete(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={handleDelete}
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1" />
+                Delete
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

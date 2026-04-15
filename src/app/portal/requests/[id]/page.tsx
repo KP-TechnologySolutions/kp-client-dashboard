@@ -9,6 +9,7 @@ import { ArrowLeft, Calendar, User, MessageSquare, Clock, CheckCircle2 } from "l
 import { getCurrentUser } from "@/lib/auth";
 import { getRequestById, getRequestComments, getRequestActivity, getRequestAttachments } from "@/lib/queries";
 import { PortalCommentForm } from "@/components/portal/portal-comment-form";
+import { DeleteRequestButton } from "@/components/portal/delete-request-button";
 import { AttachmentsList } from "@/components/shared/attachments-list";
 
 function formatDate(dateStr: string) {
@@ -184,6 +185,8 @@ export default async function PortalRequestDetailPage({
           </CardContent>
         </Card>
       )}
+
+      <DeleteRequestButton requestId={id} />
     </div>
   );
 }

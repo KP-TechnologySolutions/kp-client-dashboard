@@ -270,3 +270,42 @@ export async function createOrganization(formData: {
   revalidatePath("/admin/clients");
   return data;
 }
+
+export async function deleteRequest(requestId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  // Check if user is admin or the submitter
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const { data: request } = await supabase
+    .from("requests")
+    .select("submitted_by")
+    .eq("id", requestId)
+    .single();
+
+  if (!request) throw new Error("Request not found");
+  if (profile?.role !== "admin" && request.submitted_by !== user.id) {
+    throw new Error("Not authorized to delete this request");
+  }
+
+  const { error } = await supabase
+    .from("requests")
+    .delete()
+    .eq("id", requestId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/requests");
+  revalidatePath("/portal");
+  revalidatePath("/portal/requests");
+}
