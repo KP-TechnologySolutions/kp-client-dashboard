@@ -25,6 +25,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, organization_id")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "admin") {
+    const { data: membership } = await supabase
+      .from("user_organizations")
+      .select("organization_id")
+      .eq("user_id", user.id)
+      .eq("organization_id", orgId)
+      .maybeSingle();
+
+    const hasAccess = !!membership || profile?.organization_id === orgId;
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   // Get the org's GA property ID
   const { data: org } = await supabase
     .from("organizations")
